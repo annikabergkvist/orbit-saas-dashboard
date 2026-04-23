@@ -5,7 +5,16 @@ export default function Home() {
 }
 
 import Link from "next/link"
-import { BellIcon, ChevronDownIcon, ExternalLinkIcon } from "lucide-react"
+import {
+  BellIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  ExternalLinkIcon,
+  TrendingUpIcon,
+  UsersIcon,
+  type LucideIcon,
+} from "lucide-react"
 
 // Orbit-specific building blocks.
 import { OrbitAppSidebar } from "@/components/orbit/app-sidebar"
@@ -78,11 +87,13 @@ const myIssues: Issue[] = [
 ]
 
 function KpiCard({
+  icon: Icon,
   title,
   value,
   delta,
   deltaDirection,
 }: {
+  icon: LucideIcon
   title: string
   value: string
   delta: string
@@ -90,20 +101,34 @@ function KpiCard({
 }) {
   return (
     <Card className="ring-1 ring-foreground/10">
-      {/* Top area: label + headline number. */}
-      <CardHeader className="gap-1 px-6 pt-6 pb-2">
-        <CardDescription className="text-sm">{title}</CardDescription>
-        <CardTitle className="text-3xl font-bold tracking-tight">{value}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-6 pb-6 pt-0">
+      <CardContent className="px-7 pt-3 pb-1">
+        {/* Icon badge (top-left), matches the reference. */}
+        <div className="mb-5">
+          <div className="inline-flex size-10 items-center justify-center rounded-lg bg-muted text-primary">
+            <Icon className="size-5" />
+          </div>
+        </div>
+
+        {/* Title + value */}
+        <div className="space-y-2">
+          <CardDescription className="text-sm">{title}</CardDescription>
+          <CardTitle className="text-4xl font-bold tracking-tight">{value}</CardTitle>
+        </div>
+
         {/* Bottom area: trend vs last month. Colors come from semantic CSS tokens (no hardcoded hex). */}
-        <div className="text-sm text-muted-foreground">
+        <div className="mt-4 text-sm text-muted-foreground">
           <span
-            className={
-              deltaDirection === "up"
-                ? "text-[color:var(--status-done-foreground)]"
-                : "text-[color:var(--priority-high-foreground)]"
-            }
+            className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium"
+            style={{
+              backgroundColor:
+                deltaDirection === "up"
+                  ? "var(--kpi-delta-up)"
+                  : "var(--kpi-delta-down)",
+              color:
+                deltaDirection === "up"
+                  ? "var(--kpi-delta-up-foreground)"
+                  : "var(--kpi-delta-down-foreground)",
+            }}
           >
             {delta}
           </span>{" "}
@@ -172,24 +197,28 @@ function DashboardHome() {
           {/* KPI row */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
             <KpiCard
+              icon={TrendingUpIcon}
               title="Total Revenue"
               value="$45,231"
               delta="+20.1%"
               deltaDirection="up"
             />
             <KpiCard
+              icon={UsersIcon}
               title="Active Users"
               value="2,345"
               delta="+15.3%"
               deltaDirection="up"
             />
             <KpiCard
+              icon={CheckCircleIcon}
               title="Completed Tasks"
               value="1,234"
               delta="+8.2%"
               deltaDirection="up"
             />
             <KpiCard
+              icon={ClockIcon}
               title="Avg. Response Time"
               value="2.4h"
               delta="-12.5%"

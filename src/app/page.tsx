@@ -91,13 +91,13 @@ function KpiCard({
   return (
     <Card className="ring-1 ring-foreground/10">
       {/* Top area: label + headline number. */}
-      <CardHeader className="gap-0">
-        <CardDescription>{title}</CardDescription>
-        <CardTitle className="mt-1 text-2xl">{value}</CardTitle>
+      <CardHeader className="gap-1 px-6 pt-6 pb-2">
+        <CardDescription className="text-sm">{title}</CardDescription>
+        <CardTitle className="text-3xl font-bold tracking-tight">{value}</CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="px-6 pb-6 pt-0">
         {/* Bottom area: trend vs last month. Colors come from semantic CSS tokens (no hardcoded hex). */}
-        <div className="text-xs text-muted-foreground">
+        <div className="text-sm text-muted-foreground">
           <span
             className={
               deltaDirection === "up"
@@ -122,24 +122,39 @@ function DashboardHome() {
 
       <SidebarInset>
         {/* Top bar: page title + notifications + user menu. */}
-        <header className="flex h-14 items-center gap-2 border-b bg-background px-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="text-sm font-semibold">Dashboard</div>
+        <header className="flex h-16 items-center gap-3 border-b bg-card px-8">
+          {/* Page title (kept prominent and left-aligned like the reference). */}
+          <div className="text-lg font-semibold">Dashboard</div>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon-sm" aria-label="Notifications">
-              <BellIcon />
+            {/* Notifications button with a token-driven unread badge. */}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Notifications"
+              className="relative"
+            >
+              <span className="relative">
+                <BellIcon className="size-5" />
+                <span
+                  className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-card"
+                  aria-hidden="true"
+                />
+              </span>
             </Button>
 
             <DropdownMenu>
               {/* Base UI uses `render` instead of `asChild` to swap the underlying element. */}
               <DropdownMenuTrigger
                 render={
-                  <Button variant="ghost" className="gap-2">
-                    <Avatar size="sm">
-                      <AvatarFallback>SC</AvatarFallback>
+                  <Button variant="ghost" className="gap-3 px-3 py-2">
+                    {/* User identity block (avatar + name). */}
+                    <Avatar size="md" className="bg-primary text-primary-foreground">
+                      <AvatarFallback className="bg-transparent text-primary-foreground font-semibold">
+                        SC
+                      </AvatarFallback>
                     </Avatar>
                     <span className="hidden text-sm font-medium md:inline">Sarah Chen</span>
-                    <ChevronDownIcon className="hidden md:inline" />
+                    <ChevronDownIcon className="hidden size-4 md:inline" />
                   </Button>
                 }
               />
@@ -152,9 +167,10 @@ function DashboardHome() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-6 p-6">
+        {/* Page padding + section spacing. */}
+        <div className="flex flex-1 flex-col gap-8 p-8">
           {/* KPI row */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
             <KpiCard
               title="Total Revenue"
               value="$45,231"
@@ -182,19 +198,19 @@ function DashboardHome() {
           </div>
 
           {/* Main row: activity chart + recent issues list */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2 ring-1 ring-foreground/10">
-              <CardHeader>
+              <CardHeader className="px-6 pt-6">
                 <CardTitle>Activity Overview</CardTitle>
                 <CardDescription>Total tasks completed over time</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-6 pb-6">
                 <ActivityOverviewChart />
               </CardContent>
             </Card>
 
             <Card className="ring-1 ring-foreground/10">
-              <CardHeader className="flex-row items-start justify-between space-y-0">
+              <CardHeader className="flex-row items-start justify-between space-y-0 px-6 pt-6">
                 <div className="space-y-1">
                   <CardTitle>Recent Issues</CardTitle>
                 </div>
@@ -210,7 +226,7 @@ function DashboardHome() {
                   View all <ExternalLinkIcon className="size-4" />
                 </Link>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5 px-6 pb-6">
                 {recentIssues.map((issue) => (
                   <div key={issue.id} className="space-y-2">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -226,12 +242,12 @@ function DashboardHome() {
           </div>
 
           {/* Bottom row: status donut + "My Issues" list */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card className="ring-1 ring-foreground/10">
-              <CardHeader>
+              <CardHeader className="px-6 pt-6">
                 <CardTitle>Issues by Status</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-6 pb-6">
                 <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
                   Donut chart (next screenshot)
                 </div>
@@ -239,7 +255,7 @@ function DashboardHome() {
             </Card>
 
             <Card className="ring-1 ring-foreground/10">
-              <CardHeader className="flex-row items-start justify-between space-y-0">
+              <CardHeader className="flex-row items-start justify-between space-y-0 px-6 pt-6">
                 <CardTitle>My Issues</CardTitle>
                 <Link
                   href="/issues"
@@ -252,9 +268,9 @@ function DashboardHome() {
                   View all <ExternalLinkIcon className="size-4" />
                 </Link>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4 px-6 pb-6">
                 {myIssues.map((issue) => (
-                  <div key={issue.id} className="rounded-lg border p-3">
+                  <div key={issue.id} className="rounded-lg border p-4">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-medium">{issue.id}</span>
                     </div>

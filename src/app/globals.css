@@ -95,6 +95,12 @@
   --priority-high: oklch(0.93 0.09 25);
   --priority-high-foreground: oklch(0.43 0.19 25);
 
+  /* KPI delta pills (used on dashboard cards). */
+  --kpi-delta-up: oklch(0.975 0.03 145);
+  --kpi-delta-up-foreground: oklch(0.35 0.13 145);
+  --kpi-delta-down: oklch(0.978 0.03 27);
+  --kpi-delta-down-foreground: oklch(0.42 0.16 27);
+
   --radius: 0.625rem;
   /* Sidebar (white, like the reference). */
   --sidebar: oklch(1 0 0);
@@ -149,6 +155,11 @@
   --priority-medium-foreground: oklch(0.92 0.12 70);
   --priority-high: oklch(0.36 0.1 25);
   --priority-high-foreground: oklch(0.92 0.14 25);
+
+  --kpi-delta-up: oklch(0.45 0.06 145);
+  --kpi-delta-up-foreground: oklch(0.95 0.08 145);
+  --kpi-delta-down: oklch(0.47 0.06 27);
+  --kpi-delta-down-foreground: oklch(0.96 0.09 27);
 
   /* Keep sidebar white even in dark mode (per design request). */
   --sidebar: oklch(1 0 0);

@@ -55,7 +55,12 @@ export function ActivityOverviewChart() {
                   <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+              {/* Light, solid horizontal grid lines (no vertical lines). */}
+              <CartesianGrid
+                stroke="var(--chart-grid)"
+                strokeDasharray="0"
+                vertical={false}
+              />
               <XAxis
                 dataKey="month"
                 tickLine={false}

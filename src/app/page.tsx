@@ -227,45 +227,52 @@ function DashboardHome() {
           </div>
 
           {/* Main row: activity chart + recent issues list */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2 ring-1 ring-foreground/10">
-              <CardHeader className="px-6 pt-6">
-                <CardTitle>Activity Overview</CardTitle>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <Card className="lg:col-span-3 ring-1 ring-foreground/10">
+              <CardHeader className="px-7 pt-3">
+                <CardTitle className="text-lg font-semibold">Activity Overview</CardTitle>
                 <CardDescription>Total tasks completed over time</CardDescription>
               </CardHeader>
-              <CardContent className="px-6 pb-6">
+              <CardContent className="px-7 pb-7">
                 <ActivityOverviewChart />
               </CardContent>
             </Card>
 
-            <Card className="ring-1 ring-foreground/10">
-              <CardHeader className="flex-row items-start justify-between space-y-0 px-6 pt-6">
-                <div className="space-y-1">
-                  <CardTitle>Recent Issues</CardTitle>
-                </div>
+            <Card className="lg:col-span-2 ring-1 ring-foreground/10">
+              <CardHeader className="relative flex-row items-start justify-between space-y-0 px-7 pt-3">
+                <CardTitle className="text-lg font-semibold">Recent Issues</CardTitle>
                 {/* For links we use a real <a> and reuse button styles via `buttonVariants`. */}
                 <Link
                   href="/issues"
                   className={buttonVariants({
                     variant: "ghost",
                     size: "sm",
-                    className: "gap-1 text-muted-foreground",
+                    className:
+                      "gap-1 text-muted-foreground h-auto py-0 absolute right-7 top-3",
                   })}
                 >
                   View all <ExternalLinkIcon className="size-4" />
                 </Link>
               </CardHeader>
-              <CardContent className="space-y-5 px-6 pb-6">
-                {recentIssues.map((issue) => (
-                  <div key={issue.id} className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{issue.id}</span>
-                      <IssuePriorityBadge priority={issue.priority} />
+              <CardContent className="px-7 pb-7">
+                <div className="space-y-6">
+                  {recentIssues.map((issue) => (
+                    <div
+                      key={issue.id}
+                      className="space-y-0.5"
+                    >
+                      {/* ENG id + priority are on the same line in the reference. */}
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="font-medium">{issue.id}</span>
+                        <IssuePriorityBadge priority={issue.priority} />
+                      </div>
+                      <div className="text-sm font-semibold">{issue.title}</div>
+                      <div className="mt-2.5">
+                        <IssueStatusBadge status={issue.status} />
+                      </div>
                     </div>
-                    <div className="text-sm font-medium">{issue.title}</div>
-                    <IssueStatusBadge status={issue.status} />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>

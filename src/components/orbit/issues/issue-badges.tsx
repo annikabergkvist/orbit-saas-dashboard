@@ -49,7 +49,8 @@ function TokenBadge({
   return (
     <Badge
       variant="secondary"
-      className={cn("border-transparent font-medium", className)}
+      // Match KPI delta pill radius (`rounded-md`) instead of the default badge pill.
+      className={cn("rounded-sm border-transparent font-medium", className)}
       style={style}
     >
       {children}
@@ -76,7 +77,7 @@ export function IssuePriorityBadge({ priority }: { priority: IssuePriority }) {
   return (
     <TokenBadge
       style={{
-        backgroundColor: t.bg,
+        backgroundColor: "transparent",
         color: t.fg,
       }}
     >

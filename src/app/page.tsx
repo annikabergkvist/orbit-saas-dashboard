@@ -38,7 +38,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 
 type Issue = {
@@ -50,7 +50,7 @@ type Issue = {
 }
 
 // Placeholder data until we connect a real backend (DB + API).
-const recentIssues: Issue[] = [
+const openTickets: Issue[] = [
   {
     id: "ENG-123",
     title: "Implement user authentication flow",
@@ -72,23 +72,9 @@ const recentIssues: Issue[] = [
     priority: "low",
     status: "in_review",
   },
-  {
-    id: "ENG-126",
-    title: "Optimize database queries",
-    assignee: "Jamie Kim",
-    priority: "high",
-    status: "done",
-  },
-  {
-    id: "ENG-127",
-    title: "Design new onboarding experience",
-    assignee: "Taylor Swift",
-    priority: "medium",
-    status: "in_progress",
-  },
 ]
 
-const myIssues: Issue[] = [
+const myTasks: Issue[] = [
   {
     id: "ENG-123",
     title: "Implement user authentication flow",
@@ -98,6 +84,18 @@ const myIssues: Issue[] = [
   { id: "ENG-129", title: "Update API documentation", priority: "medium", status: "todo" },
   { id: "ENG-131", title: "Fix responsive layout issues", priority: "high", status: "in_progress" },
   { id: "ENG-135", title: "Add dark mode support", priority: "low", status: "in_review" },
+]
+
+type Meeting = {
+  id: string
+  title: string
+  time: string
+  provider: "Meet" | "Zoom"
+}
+
+const myMeetings: Meeting[] = [
+  { id: "meet-1", title: "App Project", time: "6:45 PM", provider: "Meet" },
+  { id: "meet-2", title: "User Research", time: "6:45 PM", provider: "Zoom" },
 ]
 
 function KpiCard({
@@ -240,9 +238,20 @@ function DashboardHome() {
             />
           </div>
 
-          {/* Main row: activity chart + recent issues list */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <Card className="lg:col-span-3 ring-1 ring-foreground/10">
+          {/* Dashboard grid (matches reference layout) */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_280px] lg:items-start">
+            {/* Row 2 / Col 1 */}
+            <Card className="ring-1 ring-foreground/10 lg:col-start-1">
+              <CardHeader className="px-7 pt-3">
+                <CardTitle className="text-lg font-semibold">Tasks by Status</CardTitle>
+              </CardHeader>
+              <CardContent className="px-7 pb-7">
+                <IssuesByStatusDonut />
+              </CardContent>
+            </Card>
+
+            {/* Row 2 / Col 2 */}
+            <Card className="ring-1 ring-foreground/10 lg:col-start-2">
               <CardHeader className="px-7 pt-3">
                 <CardTitle className="text-lg font-semibold">Activity Overview</CardTitle>
                 <CardDescription>Total tasks completed over time</CardDescription>
@@ -252,101 +261,108 @@ function DashboardHome() {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-2 ring-1 ring-foreground/10">
-              <CardHeader className="relative flex-row items-start justify-between space-y-0 px-7 pt-3">
-                <CardTitle className="text-lg font-semibold">Recent Issues</CardTitle>
-                {/* For links we use a real <a> and reuse button styles via `buttonVariants`. */}
-                <Link
-                  href="/issues"
-                  className={cn(
-                    buttonVariants({
-                      variant: "ghost",
-                      size: "sm",
-                      className:
-                        "gap-1 font-semibold text-primary h-auto py-0 absolute right-7 top-3 hover:text-primary/90",
-                    })
-                  )}
-                >
-                  View all <ExternalLinkIcon className="size-4" />
-                </Link>
-              </CardHeader>
-              <CardContent className="px-7 pb-7">
-                <div className="space-y-6">
-                  {recentIssues.map((issue) => (
-                    <div
-                      key={issue.id}
-                      className="space-y-0.5 rounded-xl p-4 transition-colors hover:bg-muted/50"
-                    >
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">{issue.id}</span>
+            {/* Right rail: row 2-3 / col 3 */}
+            <div className="flex flex-col gap-6 lg:col-start-3 lg:row-span-2">
+              <Card className="ring-1 ring-foreground/10">
+                <CardHeader className="px-7 pt-3">
+                  <CardTitle className="text-lg font-semibold">My Meetings</CardTitle>
+                </CardHeader>
+                <CardContent className="px-7 pb-7">
+                  <div className="space-y-4">
+                    {myMeetings.map((meeting) => (
+                      <div
+                        key={meeting.id}
+                        className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold">{meeting.title}</div>
+                          <div className="mt-1 text-xs text-muted-foreground">{meeting.time}</div>
+                        </div>
+                        <div className="shrink-0 text-xs font-medium text-muted-foreground">
+                          {meeting.provider}
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="text-sm font-semibold">{issue.title}</div>
-                        {issue.assignee ? (
-                          <div className="shrink-0 text-xs font-medium text-muted-foreground">
-                            {issue.assignee}
+                    ))}
+                  </div>
+                  <Link
+                    href="/calendar"
+                    className={cn(
+                      buttonVariants({
+                        variant: "ghost",
+                        size: "sm",
+                        className: "mt-3 h-auto px-0 py-1 font-semibold text-muted-foreground",
+                      })
+                    )}
+                  >
+                    See all meetings <ExternalLinkIcon className="size-4" />
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card className="ring-1 ring-foreground/10">
+                <CardHeader className="px-7 pt-3">
+                  <CardTitle className="text-lg font-semibold">Open Tickets</CardTitle>
+                </CardHeader>
+                <CardContent className="px-7 pb-7">
+                  <div className="space-y-4">
+                    {openTickets.map((ticket) => (
+                      <div key={ticket.id} className="rounded-xl border bg-card p-3">
+                        <div className="flex items-start gap-3">
+                          <Avatar size="sm" className="bg-muted text-foreground">
+                            <AvatarFallback className="bg-transparent text-xs font-semibold">
+                              {(ticket.assignee ?? "NA")
+                                .split(" ")
+                                .slice(0, 2)
+                                .map((p) => p[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-semibold">{ticket.assignee ?? "Unassigned"}</div>
+                            <div className="mt-1 text-xs text-muted-foreground">{ticket.title}</div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <IssueStatusBadge status={ticket.status} />
+                              <IssuePriorityBadge priority={ticket.priority} showBackground />
+                            </div>
                           </div>
-                        ) : null}
+                        </div>
                       </div>
-                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                        <IssueStatusBadge status={issue.status} />
-                        <IssuePriorityBadge
-                          priority={issue.priority}
-                          showBackground
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Bottom row: status donut + "My Issues" list */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <Card className="lg:col-span-3 ring-1 ring-foreground/10">
-              <CardHeader className="px-7 pt-3">
-                <CardTitle className="text-lg font-semibold">Issues by Status</CardTitle>
-              </CardHeader>
-              <CardContent className="px-7 pb-7">
-                <IssuesByStatusDonut />
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2 ring-1 ring-foreground/10">
+            {/* Row 3 / Col 1-2 */}
+            <Card className="ring-1 ring-foreground/10 lg:col-span-2">
               <CardHeader className="relative flex-row items-start justify-between space-y-0 px-7 pt-3">
-                <CardTitle className="text-lg font-semibold">My Issues</CardTitle>
-                <Link
-                  href="/issues"
-                  className={cn(
-                    buttonVariants({
-                      variant: "ghost",
-                      size: "sm",
-                      className:
-                        "gap-1 font-semibold text-primary h-auto py-0 absolute right-7 top-3 hover:text-primary/90",
-                    })
-                  )}
-                >
-                  View all <ExternalLinkIcon className="size-4" />
-                </Link>
+                <div>
+                  <CardTitle className="text-lg font-semibold">My Tasks</CardTitle>
+                  <CardDescription>{myTasks.length} tasks</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="secondary" size="sm" className="h-8">
+                    Filter
+                  </Button>
+                  <Button size="sm" className="h-8">
+                    + New Task
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="px-7 pb-7">
-                <div className="space-y-6">
-                  {myIssues.map((issue) => (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {myTasks.map((task) => (
                     <div
-                      key={issue.id}
-                      className="space-y-0.5 rounded-xl p-4 transition-colors hover:bg-muted/50"
+                      key={task.id}
+                      className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/30"
                     >
                       <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">{issue.id}</span>
+                        <span className="font-medium">{task.id}</span>
                       </div>
-                      <div className="text-sm font-semibold">{issue.title}</div>
-                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                        <IssueStatusBadge status={issue.status} />
-                        <IssuePriorityBadge
-                          priority={issue.priority}
-                          showBackground
-                        />
+                      <div className="mt-1 text-sm font-semibold">{task.title}</div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <IssueStatusBadge status={task.status} />
+                        <IssuePriorityBadge priority={task.priority} showBackground />
                       </div>
                     </div>
                   ))}

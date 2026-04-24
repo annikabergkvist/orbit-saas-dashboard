@@ -72,12 +72,18 @@ export function IssueStatusBadge({ status }: { status: IssueStatus }) {
   )
 }
 
-export function IssuePriorityBadge({ priority }: { priority: IssuePriority }) {
+export function IssuePriorityBadge({
+  priority,
+  showBackground = false,
+}: {
+  priority: IssuePriority
+  showBackground?: boolean
+}) {
   const t = priorityVars[priority]
   return (
     <TokenBadge
       style={{
-        backgroundColor: "transparent",
+        backgroundColor: showBackground ? t.bg : "transparent",
         color: t.fg,
       }}
     >

@@ -19,6 +19,7 @@ import {
 // Orbit-specific building blocks.
 import { OrbitAppSidebar } from "@/components/orbit/app-sidebar"
 import { ActivityOverviewChart } from "@/components/orbit/charts/activity-overview-chart"
+import { IssuesByStatusDonut } from "@/components/orbit/charts/issues-by-status-donut"
 import { IssuePriorityBadge, IssueStatusBadge } from "@/components/orbit/issues/issue-badges"
 
 // Shared UI primitives from shadcn/ui (Base UI flavor).
@@ -38,10 +39,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
 
 type Issue = {
   id: string
   title: string
+  assignee?: string
   priority: "low" | "medium" | "high"
   status: "todo" | "in_progress" | "in_review" | "done"
 }
@@ -51,26 +54,37 @@ const recentIssues: Issue[] = [
   {
     id: "ENG-123",
     title: "Implement user authentication flow",
+    assignee: "Sarah Chen",
     priority: "high",
     status: "in_progress",
   },
   {
     id: "ENG-124",
     title: "Fix navigation bug on mobile",
+    assignee: "Alex Johnson",
     priority: "medium",
     status: "todo",
   },
   {
     id: "ENG-125",
     title: "Update dashboard analytics",
+    assignee: "Morgan Lee",
     priority: "low",
     status: "in_review",
   },
   {
     id: "ENG-126",
     title: "Optimize database queries",
+    assignee: "Jamie Kim",
     priority: "high",
     status: "done",
+  },
+  {
+    id: "ENG-127",
+    title: "Design new onboarding experience",
+    assignee: "Taylor Swift",
+    priority: "medium",
+    status: "in_progress",
   },
 ]
 
@@ -193,7 +207,7 @@ function DashboardHome() {
         </header>
 
         {/* Page padding + section spacing. */}
-        <div className="flex flex-1 flex-col gap-8 p-8">
+        <div className="flex flex-1 flex-col gap-8 py-8 px-16">
           {/* KPI row */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
             <KpiCard
@@ -244,12 +258,14 @@ function DashboardHome() {
                 {/* For links we use a real <a> and reuse button styles via `buttonVariants`. */}
                 <Link
                   href="/issues"
-                  className={buttonVariants({
-                    variant: "ghost",
-                    size: "sm",
-                    className:
-                      "gap-1 text-muted-foreground h-auto py-0 absolute right-7 top-3",
-                  })}
+                  className={cn(
+                    buttonVariants({
+                      variant: "ghost",
+                      size: "sm",
+                      className:
+                        "gap-1 font-semibold text-primary h-auto py-0 absolute right-7 top-3 hover:text-primary/90",
+                    })
+                  )}
                 >
                   View all <ExternalLinkIcon className="size-4" />
                 </Link>
@@ -259,16 +275,25 @@ function DashboardHome() {
                   {recentIssues.map((issue) => (
                     <div
                       key={issue.id}
-                      className="space-y-0.5"
+                      className="space-y-0.5 rounded-xl p-4 transition-colors hover:bg-muted/50"
                     >
-                      {/* ENG id + priority are on the same line in the reference. */}
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         <span className="font-medium">{issue.id}</span>
-                        <IssuePriorityBadge priority={issue.priority} />
                       </div>
-                      <div className="text-sm font-semibold">{issue.title}</div>
-                      <div className="mt-2.5">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-sm font-semibold">{issue.title}</div>
+                        {issue.assignee ? (
+                          <div className="shrink-0 text-xs font-medium text-muted-foreground">
+                            {issue.assignee}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
                         <IssueStatusBadge status={issue.status} />
+                        <IssuePriorityBadge
+                          priority={issue.priority}
+                          showBackground
+                        />
                       </div>
                     </div>
                   ))}
@@ -278,45 +303,54 @@ function DashboardHome() {
           </div>
 
           {/* Bottom row: status donut + "My Issues" list */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card className="ring-1 ring-foreground/10">
-              <CardHeader className="px-6 pt-6">
-                <CardTitle>Issues by Status</CardTitle>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <Card className="lg:col-span-3 ring-1 ring-foreground/10">
+              <CardHeader className="px-7 pt-3">
+                <CardTitle className="text-lg font-semibold">Issues by Status</CardTitle>
               </CardHeader>
-              <CardContent className="px-6 pb-6">
-                <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
-                  Donut chart (next screenshot)
-                </div>
+              <CardContent className="px-7 pb-7">
+                <IssuesByStatusDonut />
               </CardContent>
             </Card>
 
-            <Card className="ring-1 ring-foreground/10">
-              <CardHeader className="flex-row items-start justify-between space-y-0 px-6 pt-6">
-                <CardTitle>My Issues</CardTitle>
+            <Card className="lg:col-span-2 ring-1 ring-foreground/10">
+              <CardHeader className="relative flex-row items-start justify-between space-y-0 px-7 pt-3">
+                <CardTitle className="text-lg font-semibold">My Issues</CardTitle>
                 <Link
                   href="/issues"
-                  className={buttonVariants({
-                    variant: "ghost",
-                    size: "sm",
-                    className: "gap-1 text-muted-foreground",
-                  })}
+                  className={cn(
+                    buttonVariants({
+                      variant: "ghost",
+                      size: "sm",
+                      className:
+                        "gap-1 font-semibold text-primary h-auto py-0 absolute right-7 top-3 hover:text-primary/90",
+                    })
+                  )}
                 >
                   View all <ExternalLinkIcon className="size-4" />
                 </Link>
               </CardHeader>
-              <CardContent className="space-y-4 px-6 pb-6">
-                {myIssues.map((issue) => (
-                  <div key={issue.id} className="rounded-lg border p-4">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{issue.id}</span>
+              <CardContent className="px-7 pb-7">
+                <div className="space-y-6">
+                  {myIssues.map((issue) => (
+                    <div
+                      key={issue.id}
+                      className="space-y-0.5 rounded-xl p-4 transition-colors hover:bg-muted/50"
+                    >
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">{issue.id}</span>
+                      </div>
+                      <div className="text-sm font-semibold">{issue.title}</div>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                        <IssueStatusBadge status={issue.status} />
+                        <IssuePriorityBadge
+                          priority={issue.priority}
+                          showBackground
+                        />
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm font-medium">{issue.title}</div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <IssueStatusBadge status={issue.status} />
-                      <IssuePriorityBadge priority={issue.priority} />
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>

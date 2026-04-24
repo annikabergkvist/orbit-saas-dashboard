@@ -85,14 +85,21 @@
   --status-in-progress: oklch(0.93 0.07 285);
   --status-in-progress-foreground: oklch(0.38 0.18 285);
   /* Less turquoise, more blue. */
-  --status-in-review: oklch(0.93 0.06 230);
-  --status-in-review-foreground: oklch(0.38 0.14 230);
+  --status-in-review: oklch(0.94 0.06 205);
+  --status-in-review-foreground: oklch(0.36 0.14 205);
   --status-done: oklch(0.93 0.08 145);
   --status-done-foreground: oklch(0.36 0.16 145);
 
+  /* Status chart colors (donut chart). */
+  --status-chart-todo: oklch(0.65 0 0); /* gray */
+  --status-chart-in-progress: var(--primary); /* purple */
+  --status-chart-in-review: var(--chart-2); /* teal/cyan */
+  --status-chart-done: var(--chart-3); /* green */
+
   --priority-low: oklch(0.98 0 0);
   --priority-low-foreground: oklch(0.38 0 0);
-  --priority-medium: oklch(0.985 0.02 70);
+  /* Medium priority is blue in the reference. */
+  --priority-medium: oklch(0.94 0.04 255);
   --priority-medium-foreground: oklch(0.45 0.14 250);
   --priority-high: oklch(0.985 0.02 27);
   --priority-high-foreground: oklch(0.43 0.19 27);
@@ -147,10 +154,15 @@
   --status-todo-foreground: oklch(0.92 0 0);
   --status-in-progress: oklch(0.39 0.07 285);
   --status-in-progress-foreground: oklch(0.88 0.12 285);
-  --status-in-review: oklch(0.39 0.06 230);
-  --status-in-review-foreground: oklch(0.9 0.1 230);
+  --status-in-review: oklch(0.42 0.06 205);
+  --status-in-review-foreground: oklch(0.92 0.1 205);
   --status-done: oklch(0.39 0.07 145);
   --status-done-foreground: oklch(0.9 0.11 145);
+
+  --status-chart-todo: oklch(0.75 0 0);
+  --status-chart-in-progress: var(--primary);
+  --status-chart-in-review: var(--chart-2);
+  --status-chart-done: var(--chart-3);
 
   --priority-low: oklch(0.32 0 0);
   --priority-low-foreground: oklch(0.92 0 0);

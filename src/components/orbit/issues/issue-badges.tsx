@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-type IssueStatus = "todo" | "in_progress" | "in_review" | "done"
+export type IssueStatus = "todo" | "in_progress" | "in_review" | "done"
 type IssuePriority = "low" | "medium" | "high"
 
 // We intentionally map statuses/priorities to CSS tokens (variables) so:
@@ -56,6 +56,11 @@ function TokenBadge({
       {children}
     </Badge>
   )
+}
+
+/** Left-edge strip on task cards; matches status badge background tokens. */
+export function issueStatusStripBackground(status: IssueStatus): string {
+  return statusVars[status].bg
 }
 
 export function IssueStatusBadge({ status }: { status: IssueStatus }) {

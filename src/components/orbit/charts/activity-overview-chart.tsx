@@ -103,7 +103,8 @@ export function ActivityOverviewChart() {
                 axisLine={false}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
-                tickFormatter={formatNumber}
+                tickFormatter={(value) => (value === 150 ? "" : formatNumber(value))}
+                ticks={[0, 40, 80, 120]}
                 width={34}
                 domain={[0, 150]}
               />

@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation"
 import {
   HouseIcon,
   LayoutGridIcon,
+  MessageCircleIcon,
   SquareCheckIcon,
   SearchIcon,
   UsersIcon,
   SettingsIcon,
   PlusIcon,
+  type LucideIcon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -27,13 +29,20 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-const navItems = [
+const navItems: {
+  title: string
+  href: string
+  icon: LucideIcon
+  /** When set, shows a primary dot on the icon and a count pill on the right. */
+  unreadCount?: number
+}[] = [
   { title: "Home", href: "/", icon: HouseIcon },
+  { title: "Messages", href: "/messages", icon: MessageCircleIcon, unreadCount: 5 },
   { title: "Projects", href: "/projects", icon: LayoutGridIcon },
   { title: "Issues", href: "/issues", icon: SquareCheckIcon },
   { title: "Team", href: "/team", icon: UsersIcon },
   { title: "Settings", href: "/settings", icon: SettingsIcon },
-] as const
+]
 
 export function OrbitAppSidebar() {
   const pathname = usePathname()
@@ -75,6 +84,8 @@ export function OrbitAppSidebar() {
           <SidebarMenu className="gap-0">
             {navItems.map((item) => {
               const active = pathname === item.href
+              const unread = item.unreadCount ?? 0
+              const showUnread = unread > 0
               return (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
@@ -85,9 +96,24 @@ export function OrbitAppSidebar() {
                     className="bg-transparent px-2 hover:bg-transparent active:bg-transparent data-active:bg-transparent data-active:font-semibold"
                     render={
                       <Link href={item.href}>
-                        <span className="flex w-full items-center gap-2 rounded-md px-3 py-2 transition-colors group-hover/menu-button:bg-sidebar-accent group-hover/menu-button:text-sidebar-accent-foreground group-data-[active]/menu-button:bg-sidebar-accent group-data-[active]/menu-button:text-sidebar-accent-foreground">
-                          <item.icon />
-                          <span>{item.title}</span>
+                        <span className="flex w-full min-w-0 items-center gap-2 rounded-md px-3 py-2 transition-colors group-hover/menu-button:bg-sidebar-accent group-hover/menu-button:text-sidebar-accent-foreground group-data-[active]/menu-button:bg-sidebar-accent group-data-[active]/menu-button:text-sidebar-accent-foreground">
+                          {showUnread ? (
+                            <span className="relative inline-flex shrink-0">
+                              <item.icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                              <span
+                                className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-[var(--sidebar)]"
+                                aria-hidden
+                              />
+                            </span>
+                          ) : (
+                            <item.icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                          )}
+                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          {showUnread ? (
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[0.65rem] font-semibold leading-none text-primary-foreground group-data-[collapsible=icon]:hidden">
+                              {unread > 99 ? "99+" : unread}
+                            </span>
+                          ) : null}
                         </span>
                       </Link>
                     }
@@ -117,4 +143,3 @@ export function OrbitAppSidebar() {
     </Sidebar>
   )
 }
-

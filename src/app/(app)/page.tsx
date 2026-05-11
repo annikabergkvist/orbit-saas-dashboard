@@ -438,11 +438,19 @@ export default function Home() {
                     />
                     <div className="relative min-w-0 flex-1 p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className={cn("min-w-0 flex-1", isDone && "opacity-60")}>
+                        <div className={cn("min-w-0 flex-1", isDone && "opacity-80")}>
                           <div className="text-xs text-muted-foreground">
                             <span className="font-medium">{task.id}</span>
                           </div>
-                          <div className="mt-1 text-sm font-semibold">{task.title}</div>
+                          <div
+                            className={cn(
+                              "mt-1 text-sm font-semibold",
+                              isDone &&
+                                "text-muted-foreground/80 line-through decoration-muted-foreground/60"
+                            )}
+                          >
+                            {task.title}
+                          </div>
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             <IssueStatusBadge status={task.status} />
                             <IssuePriorityBadge priority={task.priority} showBackground />

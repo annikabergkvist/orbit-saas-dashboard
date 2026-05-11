@@ -4,12 +4,12 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  BellIcon,
   ChevronDownIcon,
   MessageCircleIcon,
 } from "lucide-react"
 
 import { OrbitAppSidebar } from "@/components/orbit/app-sidebar"
+import { NotificationsPopover } from "@/components/orbit/notifications/notifications-popover"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -57,20 +57,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 />
               </span>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Notifications"
-              className="relative"
-            >
-              <span className="relative">
-                <BellIcon className="size-5" />
-                <span
-                  className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-card"
-                  aria-hidden="true"
-                />
-              </span>
-            </Button>
+            <NotificationsPopover />
 
             <DropdownMenu>
               <DropdownMenuTrigger

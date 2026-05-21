@@ -83,7 +83,9 @@ export function OrbitAppSidebar() {
         <SidebarGroup className="px-3 py-1">
           <SidebarMenu className="gap-0">
             {navItems.map((item) => {
-              const active = pathname === item.href
+              const active =
+                pathname === item.href ||
+                (item.href !== "/" && pathname.startsWith(`${item.href}/`))
               const unread = item.unreadCount ?? 0
               const showUnread = unread > 0
               return (

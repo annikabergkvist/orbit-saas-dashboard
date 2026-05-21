@@ -238,15 +238,17 @@ export function MessagesView() {
     })
   }, [unreadsOnly, inboxTab])
 
-  React.useEffect(() => {
-    if (visible.length === 0) return
-    if (!visible.some((c) => c.id === activeId)) {
-      setActiveId(visible[0].id)
-    }
+  const resolvedActiveId = React.useMemo(() => {
+    if (visible.length === 0) return activeId
+    if (visible.some((c) => c.id === activeId)) return activeId
+    return visible[0].id
   }, [visible, activeId])
 
   React.useEffect(() => {
-    if (!isMobile) setMobileShowInbox(true)
+    if (!isMobile) {
+      const id = requestAnimationFrame(() => setMobileShowInbox(true))
+      return () => cancelAnimationFrame(id)
+    }
   }, [isMobile])
 
   const selectConversation = React.useCallback(
@@ -257,7 +259,8 @@ export function MessagesView() {
     [isMobile]
   )
 
-  const active = conversations.find((c) => c.id === activeId) ?? conversations[0]
+  const active =
+    conversations.find((c) => c.id === resolvedActiveId) ?? conversations[0]
   const lastMessageId = active.messages[active.messages.length - 1]?.id
 
   return (

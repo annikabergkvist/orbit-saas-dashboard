@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from "next/link"
 import {
   ArrowUpRightIcon,
@@ -118,7 +119,7 @@ function MeetingProviderMark({
 }) {
   const src = provider === "Meet" ? "/icons/google-meet.svg" : "/icons/zoom.svg"
   return (
-    <img
+    <Image
       src={src}
       alt=""
       width={16}
@@ -446,7 +447,7 @@ export default function Home() {
                             className={cn(
                               "mt-1 text-sm font-semibold",
                               isDone &&
-                                "text-muted-foreground/80 line-through decoration-muted-foreground/60"
+                                "text-[#9aa3b2] line-through decoration-[#949ca6] decoration-1"
                             )}
                           >
                             {task.title}

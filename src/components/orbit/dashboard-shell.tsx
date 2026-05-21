@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 
 function headerTitle(pathname: string): string | null {
   if (pathname === "/messages") return null
+  if (pathname === "/projects" || pathname.startsWith("/projects/")) return null
   if (pathname === "/") return "Dashboard"
   return "Orbit"
 }

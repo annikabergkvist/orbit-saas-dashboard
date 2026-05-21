@@ -21,7 +21,7 @@ const slices: Slice[] = [
     value: 8,
     color: "var(--status-chart-in-progress)",
   },
-  { key: "done", label: "Done", value: 15, color: "var(--status-chart-done)" },
+  { key: "done", label: "Completed", value: 15, color: "var(--status-chart-done)" },
 ]
 
 export function IssuesByStatusDonut() {

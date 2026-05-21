@@ -20,7 +20,7 @@ const statusVars: Record<IssueStatus, { bg: string; fg: string; label: string }>
       fg: "var(--status-in-review-foreground)",
       label: "In Review",
     },
-    done: { bg: "var(--status-done)", fg: "var(--status-done-foreground)", label: "Done" },
+    done: { bg: "var(--status-done)", fg: "var(--status-done-foreground)", label: "Completed" },
   }
 
 const priorityVars: Record<
@@ -50,7 +50,10 @@ function TokenBadge({
     <Badge
       variant="secondary"
       // Match KPI delta pill radius (`rounded-md`) instead of the default badge pill.
-      className={cn("rounded-sm border-transparent font-medium", className)}
+      className={cn(
+        "h-6 rounded-sm border-transparent px-3 py-1 text-xs font-medium",
+        className
+      )}
       style={style}
     >
       {children}
@@ -89,6 +92,72 @@ export function IssuePriorityBadge({
     <TokenBadge
       style={{
         backgroundColor: showBackground ? t.bg : "transparent",
+        color: t.fg,
+      }}
+    >
+      {t.label}
+    </TokenBadge>
+  )
+}
+
+/** Category pill using the same tokens as {@link IssueStatusBadge} (homepage task cards). */
+export function CategoryTokenBadge({
+  label,
+  status,
+}: {
+  label: string
+  status: IssueStatus
+}) {
+  const t = statusVars[status]
+  return (
+    <TokenBadge
+      style={{
+        backgroundColor: t.bg,
+        color: t.fg,
+      }}
+    >
+      {label}
+    </TokenBadge>
+  )
+}
+
+export type TaskTag = "research" | "development" | "ux-writing" | "design" | "documentation"
+
+const taskTagVars: Record<TaskTag, { bg: string; fg: string; label: string }> = {
+  research: {
+    bg: "var(--tag-research)",
+    fg: "var(--tag-research-foreground)",
+    label: "Research",
+  },
+  design: {
+    bg: "var(--tag-design)",
+    fg: "var(--tag-design-foreground)",
+    label: "Design",
+  },
+  development: {
+    bg: "var(--tag-development)",
+    fg: "var(--tag-development-foreground)",
+    label: "Development",
+  },
+  "ux-writing": {
+    bg: "var(--tag-ux-writing)",
+    fg: "var(--tag-ux-writing-foreground)",
+    label: "UX Writing",
+  },
+  documentation: {
+    bg: "var(--tag-documentation)",
+    fg: "var(--tag-documentation-foreground)",
+    label: "Documentation",
+  },
+}
+
+/** Kanban / board task category pill with per-tag colors. */
+export function TaskTagBadge({ tag }: { tag: TaskTag }) {
+  const t = taskTagVars[tag]
+  return (
+    <TokenBadge
+      style={{
+        backgroundColor: t.bg,
         color: t.fg,
       }}
     >

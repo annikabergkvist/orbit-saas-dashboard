@@ -309,7 +309,7 @@ export function NotificationsPopover() {
                 <div className="max-h-[420px] overflow-auto">
                   {unreadNotifications.length === 0 ? (
                     <div className="rounded-lg border border-border bg-muted/30 px-3 py-8 text-center text-sm text-muted-foreground">
-                      You're all caught up.
+                      You&apos;re all caught up.
                     </div>
                   ) : (
                     <div className="space-y-1">

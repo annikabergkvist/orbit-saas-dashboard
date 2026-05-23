@@ -506,7 +506,7 @@ function ProjectDetailHeader({
   view: ProjectView
   onViewChange: (view: ProjectView) => void
 }) {
-  const avatarRing = "border-2 border-[#f6f7f9] dark:border-background"
+  const avatarRing = "border-2 border-[var(--dashboard-mesh-base)] dark:border-background"
 
   return (
     <header className="px-6 pb-8 md:px-10 lg:px-16">
@@ -626,7 +626,7 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
   const visibleTeam = project.team.slice(0, 4)
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#f6f7f9] dark:bg-background">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="px-6 pt-6 pb-8 md:px-10 lg:px-16">
         <Link
           href="/projects"

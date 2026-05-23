@@ -264,7 +264,7 @@ export function MessagesView() {
   const lastMessageId = active.messages[active.messages.length - 1]?.id
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-background">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-transparent">
       {/* Page toolbar — compact on small screens so the thread lands in the first viewport */}
       <div className="flex shrink-0 flex-wrap items-end gap-x-3 gap-y-3 border-b border-border bg-card px-4 py-3 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-4 md:px-10 md:py-5 lg:px-12">
         <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">

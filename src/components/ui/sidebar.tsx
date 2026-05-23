@@ -154,6 +154,7 @@ function Sidebar({
   variant = "sidebar",
   collapsible = "offcanvas",
   className,
+  innerClassName,
   children,
   dir,
   ...props
@@ -161,7 +162,14 @@ function Sidebar({
   side?: "left" | "right"
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
+  /** Applied to the inner sidebar panel (e.g. `sidebar-glass`). */
+  innerClassName?: string
 }) {
+  const innerPanelClassName = cn(
+    "flex size-full flex-col",
+    innerClassName ?? "bg-sidebar",
+    "group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+  )
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
   if (collapsible === "none") {
@@ -169,7 +177,8 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
+          "flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground",
+          innerClassName ?? "bg-sidebar",
           className
         )}
         {...props}
@@ -199,7 +208,7 @@ function Sidebar({
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div className={innerPanelClassName}>{children}</div>
         </SheetContent>
       </Sheet>
     )
@@ -242,7 +251,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+          className={innerPanelClassName}
         >
           {children}
         </div>
@@ -359,7 +368,10 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className)}
+      className={cn(
+        "mx-auto shrink-0 bg-sidebar-border data-horizontal:h-px data-horizontal:w-auto",
+        className
+      )}
       {...props}
     />
   )

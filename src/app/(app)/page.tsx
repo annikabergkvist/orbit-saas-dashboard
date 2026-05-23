@@ -6,9 +6,9 @@ import {
   CheckCircleIcon,
   CheckIcon,
   ChevronRightIcon,
-  ClockIcon,
-  TrendingUpIcon,
-  UsersIcon,
+  ClipboardListIcon,
+  FolderKanbanIcon,
+  UserCheckIcon,
   type LucideIcon,
 } from "lucide-react"
 
@@ -33,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getBoardForProject, projectsSeed } from "@/lib/projects-data"
 import { cn } from "@/lib/utils"
 
 type Issue = {
@@ -110,6 +111,33 @@ const myMeetings: Meeting[] = [
   { id: "meet-2", title: "User Research", time: "6:45 PM", provider: "Zoom" },
 ]
 
+/** Sprint-over-sprint trends (placeholder until API). */
+const sprintTrends = {
+  activeProjects: { delta: "+16.7%", direction: "up" as const },
+  totalTasks: { delta: "+11.4%", direction: "up" as const },
+  assignedToMe: { delta: "-8.3%", direction: "down" as const },
+  completedTasks: { delta: "+22.1%", direction: "up" as const },
+}
+
+function getDashboardKpiCounts() {
+  const activeProjects = projectsSeed.filter((p) => p.lifecycle === "active").length
+  let totalTasks = 0
+  let completedTasks = 0
+
+  for (const project of projectsSeed) {
+    const board = getBoardForProject(project)
+    totalTasks += board.tasks.length
+    completedTasks += board.tasks.filter((t) => t.column === "completed" || t.done).length
+  }
+
+  return {
+    activeProjects,
+    totalTasks,
+    completedTasks,
+    assignedToMe: myTasks.length,
+  }
+}
+
 function MeetingProviderMark({
   provider,
   className,
@@ -144,23 +172,18 @@ function KpiCard({
   deltaDirection: "up" | "down"
 }) {
   return (
-    <Card>
-      <CardContent className="px-7 pt-3 pb-1">
-        {/* Icon badge: circular chip; stroke color matches My Meetings calendar (foreground). */}
-        <div className="mb-5">
-          <div className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-muted/50 text-foreground shadow-none">
-            <Icon className="size-[18px]" strokeWidth={1.75} />
+    <Card glass className="gap-0 py-0">
+      <CardContent className="p-4">
+        <div className="mb-2 flex items-center gap-2.5">
+          <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/25 text-foreground backdrop-blur-sm">
+            <Icon className="size-4" strokeWidth={1.75} />
           </div>
+          <span className="text-sm font-medium text-muted-foreground">{title}</span>
         </div>
 
-        {/* Title + value */}
-        <div className="space-y-2">
-          <CardDescription className="text-sm">{title}</CardDescription>
-          <CardTitle className="text-4xl font-bold tracking-tight">{value}</CardTitle>
-        </div>
+        <CardTitle className="text-3xl font-bold tracking-tight">{value}</CardTitle>
 
-        {/* Bottom area: trend vs last month. Colors come from semantic CSS tokens (no hardcoded hex). */}
-        <div className="mt-4 text-sm text-muted-foreground">
+        <div className="mt-2 text-sm text-muted-foreground">
           <span
             className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium"
             style={{
@@ -176,7 +199,7 @@ function KpiCard({
           >
             {delta}
           </span>{" "}
-          vs last month
+          vs last sprint
         </div>
       </CardContent>
     </Card>
@@ -184,37 +207,39 @@ function KpiCard({
 }
 
 export default function Home() {
+  const kpi = getDashboardKpiCounts()
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 bg-muted/60 py-8 px-16">
+    <div className="flex min-h-0 flex-1 flex-col gap-5 py-8 px-16">
       {/* KPI row */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          icon={TrendingUpIcon}
-          title="Total Revenue"
-          value="$45,231"
-          delta="+20.1%"
-          deltaDirection="up"
+          icon={FolderKanbanIcon}
+          title="Active Projects"
+          value={String(kpi.activeProjects)}
+          delta={sprintTrends.activeProjects.delta}
+          deltaDirection={sprintTrends.activeProjects.direction}
         />
         <KpiCard
-          icon={UsersIcon}
-          title="Active Users"
-          value="2,345"
-          delta="+15.3%"
-          deltaDirection="up"
+          icon={ClipboardListIcon}
+          title="Total Tasks"
+          value={String(kpi.totalTasks)}
+          delta={sprintTrends.totalTasks.delta}
+          deltaDirection={sprintTrends.totalTasks.direction}
+        />
+        <KpiCard
+          icon={UserCheckIcon}
+          title="Assigned to Me"
+          value={String(kpi.assignedToMe)}
+          delta={sprintTrends.assignedToMe.delta}
+          deltaDirection={sprintTrends.assignedToMe.direction}
         />
         <KpiCard
           icon={CheckCircleIcon}
           title="Completed Tasks"
-          value="1,234"
-          delta="+8.2%"
-          deltaDirection="up"
-        />
-        <KpiCard
-          icon={ClockIcon}
-          title="Avg. Response Time"
-          value="2.4h"
-          delta="-12.5%"
-          deltaDirection="down"
+          value={String(kpi.completedTasks)}
+          delta={sprintTrends.completedTasks.delta}
+          deltaDirection={sprintTrends.completedTasks.direction}
         />
       </div>
 

@@ -185,7 +185,15 @@ function NotificationRow({
   )
 }
 
-export function NotificationsPopover() {
+export function NotificationsPopover({
+  triggerClassName,
+  unreadDotClassName,
+  iconClassName,
+}: {
+  triggerClassName?: string
+  unreadDotClassName?: string
+  iconClassName?: string
+} = {}) {
   const [notifications, setNotifications] = React.useState<Notification[]>(
     seedNotifications
   )
@@ -237,13 +245,19 @@ export function NotificationsPopover() {
                         ? `Notifications (${unreadCount} unread)`
                         : "Notifications"
                     }
-                    className="relative"
+                    className={cn("relative", triggerClassName)}
                   >
                     <span className="relative inline-flex">
-                      <BellIcon className="size-5" strokeWidth={1.75} />
+                      <BellIcon
+                        className={cn("size-5", iconClassName)}
+                        strokeWidth={1.75}
+                      />
                       {unreadCount > 0 ? (
                         <span
-                          className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-card"
+                          className={cn(
+                            "absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-card",
+                            unreadDotClassName
+                          )}
                           aria-hidden="true"
                         />
                       ) : null}
@@ -264,6 +278,7 @@ export function NotificationsPopover() {
           align="end"
           side="bottom"
           sideOffset={10}
+          glass
           className="w-[380px] p-0"
         >
           <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-3">

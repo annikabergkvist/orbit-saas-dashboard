@@ -256,7 +256,7 @@ export function ProjectsOverview() {
   const sortLabel = sortOptions.find((o) => o.value === sort)?.label ?? "Sort"
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-8 bg-[#f6f7f9] px-6 py-8 md:px-10 lg:px-16 dark:bg-background">
+    <div className="flex min-h-0 flex-1 flex-col gap-8 px-6 py-8 md:px-10 lg:px-16">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-[1.75rem]">
           Projects

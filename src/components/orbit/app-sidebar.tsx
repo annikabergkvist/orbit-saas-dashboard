@@ -1,147 +1,265 @@
 "use client"
 
+
+
 import * as React from "react"
+
 import Link from "next/link"
+
 import { usePathname } from "next/navigation"
+
 import {
+
   HouseIcon,
+
   LayoutGridIcon,
+
   MessageCircleIcon,
+
   SquareCheckIcon,
-  SearchIcon,
+
   UsersIcon,
+
   SettingsIcon,
+
   PlusIcon,
+
   type LucideIcon,
+
 } from "lucide-react"
 
+
+
 import { Button } from "@/components/ui/button"
+
 import {
+
   Sidebar,
+
   SidebarContent,
+
   SidebarFooter,
+
   SidebarGroup,
+
   SidebarHeader,
+
   SidebarMenu,
+
   SidebarMenuButton,
+
   SidebarMenuItem,
-  SidebarRail,
+
   SidebarSeparator,
+
 } from "@/components/ui/sidebar"
 
+import { cn } from "@/lib/utils"
+
+
+
 const navItems: {
+
   title: string
+
   href: string
+
   icon: LucideIcon
+
   /** When set, shows a primary dot on the icon and a count pill on the right. */
+
   unreadCount?: number
+
 }[] = [
-  { title: "Home", href: "/", icon: HouseIcon },
+
+  { title: "Dashboard", href: "/", icon: HouseIcon },
+
   { title: "Messages", href: "/messages", icon: MessageCircleIcon, unreadCount: 5 },
+
   { title: "Projects", href: "/projects", icon: LayoutGridIcon },
+
   { title: "Issues", href: "/issues", icon: SquareCheckIcon },
+
   { title: "Team", href: "/team", icon: UsersIcon },
+
   { title: "Settings", href: "/settings", icon: SettingsIcon },
+
 ]
 
+
+
 export function OrbitAppSidebar() {
+
   const pathname = usePathname()
 
+
+
   return (
-    <Sidebar collapsible="icon" variant="sidebar">
-      {/* Brand + global search (mirrors Linear-style sidebar patterns). */}
+
+    <Sidebar
+
+      collapsible="icon"
+
+      variant="sidebar"
+
+      innerClassName="sidebar-glass"
+
+      className="border-r-transparent"
+
+    >
+
       <SidebarHeader className="gap-5 px-7 pt-7 pb-5">
-        <div className="flex items-center gap-2">
-          <div className="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-s font-semibold leading-none">O</span>
-          </div>
-          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <div className="truncate text-md font-semibold">Orbit</div>
-          </div>
+
+        <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+
+          <div className="truncate text-md font-semibold">Orbit</div>
+
         </div>
+
       </SidebarHeader>
 
-      {/* Section divider between header and nav (matches reference). */}
-      <SidebarSeparator className="my-2 w-[calc(100%-3rem)] self-center" />
+
+
+      <SidebarSeparator className="my-2 data-horizontal:w-[calc(100%-3rem)] bg-white/25" />
+
+
 
       <SidebarContent>
-        {/* Search row lives under the first separator (matches reference). */}
-        <div className="px-5 pt-2 pb-3">
-          <button
-            type="button"
-            className="group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-muted-foreground outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring/50"
-          >
-            <SearchIcon className="size-4" />
-            <span className="flex-1 truncate">Search</span>
-            <span className="px-2 py-0.5 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-              ⌘K
-            </span>
-          </button>
-        </div>
 
-        {/* Primary navigation. "tooltip" becomes useful when sidebar is collapsed to icon-only mode. */}
         <SidebarGroup className="px-3 py-1">
+
           <SidebarMenu className="gap-0">
+
             {navItems.map((item) => {
+
               const active =
+
                 pathname === item.href ||
+
                 (item.href !== "/" && pathname.startsWith(`${item.href}/`))
+
               const unread = item.unreadCount ?? 0
+
               const showUnread = unread > 0
+
               return (
+
                 <SidebarMenuItem key={item.href}>
+
                   <SidebarMenuButton
+
                     isActive={active}
+
                     tooltip={item.title}
+
                     size="lg"
-                    // Keep the row height/spacing, but render a smaller inner "pill" for hover/active.
+
                     className="bg-transparent px-2 hover:bg-transparent active:bg-transparent data-active:bg-transparent data-active:font-semibold"
+
                     render={
+
                       <Link href={item.href}>
-                        <span className="flex w-full min-w-0 items-center gap-2 rounded-md px-3 py-2 transition-colors group-hover/menu-button:bg-sidebar-accent group-hover/menu-button:text-sidebar-accent-foreground group-data-[active]/menu-button:bg-sidebar-accent group-data-[active]/menu-button:text-sidebar-accent-foreground">
-                          {showUnread ? (
-                            <span className="relative inline-flex shrink-0">
-                              <item.icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
-                              <span
-                                className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-[var(--sidebar)]"
-                                aria-hidden
-                              />
-                            </span>
-                          ) : (
-                            <item.icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+
+                        <span
+
+                          className={cn(
+
+                            "flex w-full min-w-0 items-center gap-2 rounded-xl px-3 py-2 transition-colors",
+
+                            "group-hover/menu-button:bg-white/20 group-hover/menu-button:backdrop-blur-sm group-hover/menu-button:text-foreground",
+
+                            "group-data-[active]/menu-button:bg-white/45 group-data-[active]/menu-button:font-semibold group-data-[active]/menu-button:text-foreground group-data-[active]/menu-button:shadow-sm",
+
+                            "group-data-[active]/menu-button:backdrop-blur-md group-data-[active]/menu-button:ring-1 group-data-[active]/menu-button:ring-white/50"
+
                           )}
-                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+
+                        >
+
                           {showUnread ? (
-                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[0.65rem] font-semibold leading-none text-primary-foreground group-data-[collapsible=icon]:hidden">
-                              {unread > 99 ? "99+" : unread}
+
+                            <span className="relative inline-flex shrink-0">
+
+                              <item.icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+
+                              <span
+
+                                className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-transparent"
+
+                                aria-hidden
+
+                              />
+
                             </span>
+
+                          ) : (
+
+                            <item.icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+
+                          )}
+
+                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+
+                          {showUnread ? (
+
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[0.65rem] font-semibold leading-none text-primary-foreground group-data-[collapsible=icon]:hidden">
+
+                              {unread > 99 ? "99+" : unread}
+
+                            </span>
+
                           ) : null}
+
                         </span>
+
                       </Link>
+
                     }
+
                   />
+
                 </SidebarMenuItem>
+
               )
+
             })}
+
           </SidebarMenu>
+
         </SidebarGroup>
+
       </SidebarContent>
 
-      {/* Divider above the primary CTA. */}
-      <SidebarSeparator className="my-2 w-[calc(100%-3rem)] self-center" />
+
+
+      <SidebarSeparator className="my-2 data-horizontal:w-[calc(100%-3rem)] bg-white/25" />
+
+
 
       <SidebarFooter className="px-5 pt-2 pb-5">
-        {/* Primary call-to-action. We'll wire this up to a create-issue flow later. */}
+
         <Button
+
+          variant="default"
+
           size="lg"
+
           className="h-10 w-full justify-center gap-2 px-4 group-data-[collapsible=icon]:justify-center"
+
         >
+
           <PlusIcon />
+
           <span className="group-data-[collapsible=icon]:hidden">New Issue</span>
+
         </Button>
+
       </SidebarFooter>
 
-      <SidebarRail />
     </Sidebar>
+
   )
+
 }
+
+

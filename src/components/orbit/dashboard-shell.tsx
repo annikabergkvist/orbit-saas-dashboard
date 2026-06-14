@@ -50,7 +50,7 @@ import { cn } from "@/lib/utils"
 const currentUser = {
   name: "Annika Bergkvist",
   email: "annika@orbit.app",
-  avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+  avatarUrl: "/avatars/annika.png?v=2",
 }
 
 /** Frosted hover for top-bar icon buttons and profile (overrides ghost `hover:bg-muted`). */

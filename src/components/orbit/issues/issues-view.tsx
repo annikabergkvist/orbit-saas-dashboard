@@ -18,6 +18,7 @@ import {
   IssueStatusBadge,
   issueStatusStripBackground,
 } from "@/components/orbit/issues/issue-badges"
+import { IssueDetailPanel } from "@/components/orbit/issues/issue-detail-panel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -235,12 +236,36 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
   )
 }
 
-function IssueRow({ issue }: { issue: Issue }) {
+function IssueRow({
+  issue,
+  selected,
+  onSelect,
+}: {
+  issue: Issue
+  selected: boolean
+  onSelect: () => void
+}) {
   const overdue = isIssueOverdue(issue)
   const assignee = getAssignee(issue.assigneeId)
 
   return (
-    <div className="flex overflow-hidden rounded-xl border border-foreground/10 bg-card transition-colors hover:bg-muted/30">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
+      aria-pressed={selected}
+      className={cn(
+        "flex cursor-pointer overflow-hidden rounded-xl border bg-card transition-colors hover:bg-muted/30",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        selected ? "border-primary/50 ring-1 ring-primary/30" : "border-foreground/10"
+      )}
+    >
       <div
         className="w-1 shrink-0 self-stretch"
         style={{ backgroundColor: issueStatusStripBackground(issue.status) }}
@@ -299,11 +324,15 @@ function StatusGroup({
   issues,
   collapsed,
   onToggle,
+  selectedId,
+  onSelectIssue,
 }: {
   status: WorkItemStatus
   issues: Issue[]
   collapsed: boolean
   onToggle: () => void
+  selectedId: string | null
+  onSelectIssue: (id: string) => void
 }) {
   return (
     <section className="flex flex-col gap-2">
@@ -329,7 +358,12 @@ function StatusGroup({
       {collapsed ? null : (
         <div className="flex flex-col gap-2">
           {issues.map((issue) => (
-            <IssueRow key={issue.id} issue={issue} />
+            <IssueRow
+              key={issue.id}
+              issue={issue}
+              selected={issue.id === selectedId}
+              onSelect={() => onSelectIssue(issue.id)}
+            />
           ))}
         </div>
       )}
@@ -339,7 +373,8 @@ function StatusGroup({
 
 export function IssuesView() {
   const searchParams = useSearchParams()
-  const [issues] = React.useState<Issue[]>(issuesSeed)
+  const [issues, setIssues] = React.useState<Issue[]>(issuesSeed)
+  const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(null)
   const [tab, setTab] = React.useState<IssueTab>("all")
   const [filters, setFilters] = React.useState<Filters>(emptyFilters)
   const [sortKey, setSortKey] = React.useState<IssueSortKey>("priority")
@@ -421,7 +456,38 @@ export function IssuesView() {
     })
   }
 
+  const updateIssue = React.useCallback((id: string, patch: Partial<Issue>) => {
+    setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)))
+  }, [])
+
+  const addComment = React.useCallback((id: string, body: string) => {
+    setIssues((prev) =>
+      prev.map((i) =>
+        i.id === id
+          ? {
+              ...i,
+              comments: [
+                ...i.comments,
+                {
+                  id: `c-${id}-${Date.now()}`,
+                  authorId: CURRENT_USER.id,
+                  body,
+                  timeLabel: "Just now",
+                },
+              ],
+            }
+          : i
+      )
+    )
+  }, [])
+
   const activeAssignee = filters.assigneeId ? getAssignee(filters.assigneeId) : undefined
+
+  // Keep the last opened issue around during the panel's close animation.
+  const selectedIssue = issues.find((i) => i.id === selectedIssueId) ?? null
+  const lastIssueRef = React.useRef<Issue | null>(null)
+  if (selectedIssue) lastIssueRef.current = selectedIssue
+  const panelIssue = selectedIssue ?? lastIssueRef.current
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-6 px-6 py-8 md:px-10 lg:px-16">
@@ -583,10 +649,24 @@ export function IssuesView() {
               issues={group.issues}
               collapsed={collapsed.has(group.status)}
               onToggle={() => toggleGroup(group.status)}
+              selectedId={selectedIssueId}
+              onSelectIssue={setSelectedIssueId}
             />
           ))}
         </div>
       )}
+
+      <IssueDetailPanel
+        issue={panelIssue}
+        open={selectedIssueId !== null}
+        onClose={() => setSelectedIssueId(null)}
+        onUpdate={(patch) => {
+          if (selectedIssueId) updateIssue(selectedIssueId, patch)
+        }}
+        onAddComment={(body) => {
+          if (selectedIssueId) addComment(selectedIssueId, body)
+        }}
+      />
     </div>
   )
 }

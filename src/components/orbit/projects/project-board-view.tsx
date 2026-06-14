@@ -98,8 +98,9 @@ function FilterChip({ label, value }: { label: string; value: string }) {
 
 function groupTasksByColumn(tasks: BoardTask[]): Record<BoardColumnId, BoardTask[]> {
   const map: Record<BoardColumnId, BoardTask[]> = {
-    pending: [],
+    todo: [],
     in_progress: [],
+    in_review: [],
     completed: [],
     launched: [],
   }
@@ -119,14 +120,14 @@ function isColumnId(id: string): id is BoardColumnId {
 
 function applyTaskToColumn(task: BoardTask, column: BoardColumnId): BoardTask {
   const next: BoardTask = { ...task, column }
-  if (column === "completed") {
-    return { ...next, done: true }
+  if (column === "in_progress" && next.progress === undefined) {
+    return { ...next, progress: 0 }
   }
-  const cleared: BoardTask = { ...next, done: false }
-  if (column === "in_progress" && cleared.progress === undefined) {
-    return { ...cleared, progress: 0 }
-  }
-  return cleared
+  return next
+}
+
+function isCompletedColumn(column: BoardColumnId): boolean {
+  return column === "completed"
 }
 
 function BoardTaskCard({
@@ -138,19 +139,21 @@ function BoardTaskCard({
 }) {
   const launchWhen = task.launchDateTime ?? task.dueLabel
   const showLaunchMeta = task.column === "launched" && Boolean(launchWhen)
+  const isCompleted = isCompletedColumn(task.column)
 
   return (
     <Card
+      glass="subtle"
       className={cn(
-        "gap-0 overflow-hidden rounded-xl border border-border/50 bg-card py-0 shadow-[0_2px_8px_rgba(15,23,42,0.08)]",
-        task.done && "flex",
+        "gap-0 py-0",
+        isCompleted && "flex",
         className
       )}
     >
-      {task.done ? (
+      {isCompleted ? (
         <div
           className="w-1 shrink-0 self-stretch"
-          style={{ backgroundColor: issueStatusStripBackground("done") }}
+          style={{ backgroundColor: issueStatusStripBackground("completed") }}
           aria-hidden
         />
       ) : null}
@@ -160,7 +163,7 @@ function BoardTaskCard({
           <h3
             className={cn(
               "text-lg font-semibold leading-snug tracking-tight",
-              task.done
+              isCompleted
                 ? "text-[#9aa3b2] line-through decoration-[#949ca6] decoration-1"
                 : "text-foreground"
             )}
@@ -192,15 +195,15 @@ function BoardTaskCard({
           </div>
         ) : null}
 
-        {(task.tags?.length ?? 0) > 0 || task.priority || task.assignees.length > 0 || task.done ? (
+        {(task.tags?.length ?? 0) > 0 || task.priority || task.assignees.length > 0 || isCompleted ? (
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              {task.done ? <IssueStatusBadge status="done" /> : null}
+              {isCompleted ? <IssueStatusBadge status="completed" /> : null}
               {task.tags?.map((tag) => (
                 <TaskTagBadge key={tag} tag={tag} />
               ))}
               {task.priority ? (
-                <IssuePriorityBadge priority={task.priority} showBackground />
+                <IssuePriorityBadge priority={task.priority} />
               ) : null}
             </div>
             {task.assignees.length > 0 ? (
@@ -208,7 +211,7 @@ function BoardTaskCard({
                 {task.assignees.map((member) => (
                   <Avatar
                     key={member.id}
-                    className="size-9 border-2 border-card"
+                    className="size-9 border-2 border-background ring-0"
                     title={member.name}
                   >
                     <AvatarImage src={member.avatarUrl} alt="" />
@@ -247,8 +250,8 @@ function BoardTaskCard({
           <PaperclipIcon className="size-3.5" strokeWidth={1.75} />
           <span className="tabular-nums">{task.attachments}</span>
         </span>
-        {task.done ? (
-          <span className="ml-auto inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+        {isCompleted ? (
+          <span className="ml-auto inline-flex items-center gap-1.5 font-medium text-[var(--status-completed-foreground)]">
             <CheckCheckIcon className="size-3.5 shrink-0" strokeWidth={2.25} />
             <span>Completed</span>
           </span>
@@ -339,7 +342,7 @@ function KanbanColumn({
           </div>
         </header>
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-          <div ref={setNodeRef} className="flex min-h-[120px] flex-col gap-5">
+          <div ref={setNodeRef} className="flex min-h-[120px] flex-col gap-3">
             {tasks.map((task) => (
               <SortableTaskCard key={task.id} task={task} />
             ))}
@@ -438,7 +441,7 @@ function KanbanBoard({ board }: { board: ProjectBoard }) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex min-h-0 flex-1 items-start gap-8 overflow-x-auto pb-2">
+      <div className="flex min-h-0 flex-1 items-start gap-5 overflow-x-auto pb-2">
         {boardColumns.map((col) => (
           <KanbanColumn key={col.id} col={col} tasks={tasksByColumn[col.id]} />
         ))}
@@ -469,7 +472,7 @@ function PlaceholderPanel({ title }: { title: string }) {
 
 function ProjectOverviewPanel({ project }: { project: ProjectSummary }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-2">
       <Card className="gap-4 border-border/50 bg-card p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">About</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">{project.description}</p>

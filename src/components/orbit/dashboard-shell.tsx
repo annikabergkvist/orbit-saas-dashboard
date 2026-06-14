@@ -1,7 +1,6 @@
 "use client"
 
-
-
+import * as React from "react"
 import type { ReactNode } from "react"
 
 import Link from "next/link"
@@ -36,6 +35,8 @@ import {
 
   DropdownMenuItem,
 
+  DropdownMenuSeparator,
+
   DropdownMenuTrigger,
 
 } from "@/components/ui/dropdown-menu"
@@ -62,12 +63,110 @@ const headerActionClass = cn(
 
 
 function userFirstName(fullName: string) {
-
   return fullName.split(/\s+/)[0] ?? fullName
+}
 
+function getTimeBasedGreeting(firstName: string): string {
+  const hour = new Date().getHours()
+  if (hour >= 5 && hour < 12) return `Good morning, ${firstName}`
+  if (hour >= 12 && hour < 18) return `Good afternoon, ${firstName}`
+  return `Good evening, ${firstName}`
+}
+
+function DashboardHomeHeader({ firstName }: { firstName: string }) {
+  const [greeting, setGreeting] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    setGreeting(getTimeBasedGreeting(firstName))
+  }, [firstName])
+
+  return (
+    <div className="min-w-0 shrink-0">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+      {greeting != null ? (
+        <p className="mt-0.5 text-[13px] text-muted-foreground">{greeting}</p>
+      ) : null}
+    </div>
+  )
+}
+
+function shellHeaderTitle(pathname: string): string | null {
+  if (pathname === "/") return null
+  if (pathname === "/messages") return "Messages"
+  if (pathname === "/projects" || pathname.startsWith("/projects/")) return "Projects"
+  if (pathname === "/issues") return "Issues"
+  if (pathname === "/team") return "Team"
+  if (pathname === "/settings") return "Settings"
+  return null
 }
 
 
+
+function HeaderExpandableSearch() {
+  const [open, setOpen] = React.useState(false)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const inputRef = React.useRef<HTMLInputElement>(null)
+
+  React.useEffect(() => {
+    if (!open) return
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false)
+    }
+
+    document.addEventListener("mousedown", handlePointerDown)
+    document.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [open])
+
+  React.useEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  return (
+    <div ref={containerRef} className="flex flex-row-reverse items-center">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={cn("size-9 shrink-0 rounded-full", headerActionClass)}
+        aria-label={open ? "Close search" : "Open search"}
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <SearchIcon className="size-5" strokeWidth={1.75} />
+      </Button>
+
+      <div
+        className={cn(
+          "dashboard-header-search flex h-10 items-center overflow-hidden rounded-full transition-[width] duration-200 ease-in-out",
+          open ? "w-[240px]" : "w-0"
+        )}
+      >
+        <input
+          ref={inputRef}
+          type="search"
+          placeholder="Search... ⌘K"
+          aria-label="Search"
+          tabIndex={open ? 0 : -1}
+          className="h-full w-[240px] shrink-0 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none"
+        />
+      </div>
+    </div>
+  )
+}
 
 function UserAccountMenu({ compactOnMobile = true }: { compactOnMobile?: boolean }) {
 
@@ -112,14 +211,33 @@ function UserAccountMenu({ compactOnMobile = true }: { compactOnMobile?: boolean
 
       />
 
-      <DropdownMenuContent align="end" glass>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="w-56 overflow-hidden rounded-md p-0 shadow-lg ring-1 ring-foreground/5"
+      >
+        <div className="px-4 py-3">
+          <p className="text-xs text-muted-foreground">Signed in as</p>
+          <p className="truncate text-sm font-semibold text-foreground">
+            {currentUser.email}
+          </p>
+        </div>
 
-        <DropdownMenuItem>Profile</DropdownMenuItem>
+        <DropdownMenuSeparator className="my-0" />
 
-        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <div className="p-1">
+          <DropdownMenuItem className="rounded-sm px-3 py-2">
+            Account settings
+          </DropdownMenuItem>
+          <DropdownMenuItem className="rounded-sm px-3 py-2">Support</DropdownMenuItem>
+          <DropdownMenuItem className="rounded-sm px-3 py-2">License</DropdownMenuItem>
+        </div>
 
-        <DropdownMenuItem variant="destructive">Sign out</DropdownMenuItem>
+        <DropdownMenuSeparator className="my-0" />
 
+        <div className="p-1">
+          <DropdownMenuItem className="rounded-sm px-3 py-2">Sign out</DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
 
     </DropdownMenu>
@@ -130,106 +248,31 @@ function UserAccountMenu({ compactOnMobile = true }: { compactOnMobile?: boolean
 
 
 
-/** Routes that render their own page title in content — shell header stays actions-only on the left. */
-
-function pageHasOwnTitle(pathname: string): boolean {
-
-  return (
-
-    pathname === "/messages" ||
-
-    pathname === "/projects" ||
-
-    pathname.startsWith("/projects/")
-
-  )
-
-}
-
-
-
-function shellHeaderTitle(pathname: string): string | null {
-
-  if (pathname === "/") return null
-
-  if (pageHasOwnTitle(pathname)) return null
-
-  if (pathname === "/issues") return "Issues"
-
-  if (pathname === "/team") return "Team"
-
-  if (pathname === "/settings") return "Settings"
-
-  return "Orbit"
-
-}
-
-
-
 function AppShellHeader({ pathname }: { pathname: string }) {
-
   const title = shellHeaderTitle(pathname)
-
   const isHome = pathname === "/"
 
-
-
   return (
-
-    <header className="flex h-16 shrink-0 items-center gap-4 px-8 lg:px-10">
-
+    <header
+      className={cn(
+        "flex shrink-0 items-center gap-4 px-8 lg:px-10",
+        isHome ? "min-h-16 py-3" : "h-16"
+      )}
+    >
       {isHome ? (
-
-        <h1 className="shrink-0 text-2xl font-bold tracking-tight text-foreground">
-
-          Hello, {userFirstName(currentUser.name)}
-
-        </h1>
-
+        <DashboardHomeHeader firstName={userFirstName(currentUser.name)} />
       ) : title != null ? (
-
         <h1 className="shrink-0 text-2xl font-bold tracking-tight text-foreground">
-
           {title}
-
         </h1>
-
       ) : (
-
         <div className="min-w-0 flex-1" />
-
       )}
 
 
 
       <div className="ml-auto flex min-w-0 items-center gap-4">
-        <label className="dashboard-header-search relative hidden h-10 min-w-0 items-center gap-2.5 rounded-full px-4 sm:flex sm:w-[min(100%,36rem)] lg:w-[38rem]">
-
-          <SearchIcon
-
-            className="size-[18px] shrink-0 text-muted-foreground"
-
-            strokeWidth={1.75}
-
-            aria-hidden
-
-          />
-
-          <input
-
-            type="search"
-
-            placeholder="Search..."
-
-            className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-
-            aria-label="Search"
-
-          />
-
-        </label>
-
-
+        <HeaderExpandableSearch />
 
         <div className="flex shrink-0 items-center gap-1">
           <div className="flex items-center gap-0">

@@ -54,7 +54,7 @@ function NotificationRow({
   const ctas = notification.ctas ?? []
 
   return (
-    <div className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50">
+    <div className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 rounded-sm px-3 py-2 transition-colors hover:bg-accent">
       <Avatar size="md" className="mt-0.5 bg-muted text-foreground">
         {notification.actor.avatarUrl ? (
           <AvatarImage src={notification.actor.avatarUrl} alt="" />
@@ -277,19 +277,23 @@ export function NotificationsPopover({
         <PopoverContent
           align="end"
           side="bottom"
-          sideOffset={10}
-          glass
-          className="w-[380px] p-0"
+          sideOffset={8}
+          className="w-[380px] overflow-hidden rounded-md p-0 shadow-lg ring-1 ring-foreground/5"
         >
-          <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-3">
-            <div className="text-base font-semibold tracking-tight">
-              Notifications
+          <div className="flex items-start justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Notifications</p>
+              <p className="truncate text-sm font-semibold text-foreground">
+                {unreadCount > 0
+                  ? `${unreadCount} unread`
+                  : "You're all caught up"}
+              </p>
             </div>
             <Button
               type="button"
               variant="link"
               size="sm"
-              className="h-auto px-0 py-0 text-muted-foreground hover:text-foreground"
+              className="h-auto shrink-0 px-0 py-0 text-xs text-muted-foreground hover:text-foreground"
               onClick={markAllAsRead}
               disabled={unreadCount === 0}
             >
@@ -297,7 +301,9 @@ export function NotificationsPopover({
             </Button>
           </div>
 
-          <div className="px-4 pb-3">
+          <Separator className="my-0" />
+
+          <div className="px-4 py-3">
             <Tabs
               value={notificationsTab}
               onValueChange={(value) => {
@@ -323,7 +329,7 @@ export function NotificationsPopover({
               <TabsContent value="unread" className="mt-3">
                 <div className="max-h-[420px] overflow-auto">
                   {unreadNotifications.length === 0 ? (
-                    <div className="rounded-lg border border-border bg-muted/30 px-3 py-8 text-center text-sm text-muted-foreground">
+                    <div className="rounded-sm px-3 py-8 text-center text-sm text-muted-foreground">
                       You&apos;re all caught up.
                     </div>
                   ) : (
@@ -358,7 +364,7 @@ export function NotificationsPopover({
 
           {unreadCount === 0 && notificationsTab === "all" ? (
             <>
-              <Separator />
+              <Separator className="my-0" />
               <div className="px-4 py-3 text-center text-xs text-muted-foreground">
                 You&apos;re all caught up
               </div>

@@ -112,9 +112,9 @@ export const seedNotifications: Notification[] = [
     },
     entity: {
       type: "task",
-      id: "ENG-140",
+      id: "ORB-140",
       name: "Polish onboarding empty states",
-      href: "/tasks/ENG-140",
+      href: "/tasks/ORB-140",
     },
     project: { id: "proj-onboarding", name: "Onboarding Revamp", href: "/projects/onboarding" },
     ctas: [{ kind: "button", label: "Reply", actionId: "reply" }],
@@ -132,13 +132,13 @@ export const seedNotifications: Notification[] = [
     },
     entity: {
       type: "task",
-      id: "ENG-131",
+      id: "ORB-131",
       name: "Fix responsive layout issues",
-      href: "/tasks/ENG-131",
+      href: "/tasks/ORB-131",
     },
     project: { id: "proj-frontend", name: "Frontend Polish", href: "/projects/frontend" },
     ctas: [
-      { kind: "link", label: "View", href: "/tasks/ENG-131" },
+      { kind: "link", label: "View", href: "/tasks/ORB-131" },
     ],
   },
   {
@@ -154,9 +154,9 @@ export const seedNotifications: Notification[] = [
     },
     entity: {
       type: "task",
-      id: "ENG-123",
+      id: "ORB-123",
       name: "Implement user authentication flow",
-      href: "/tasks/ENG-123",
+      href: "/tasks/ORB-123",
     },
     project: { id: "proj-auth", name: "Auth Platform", href: "/projects/auth" },
   },
@@ -173,9 +173,9 @@ export const seedNotifications: Notification[] = [
     },
     entity: {
       type: "task",
-      id: "ENG-129",
+      id: "ORB-129",
       name: "Update API documentation",
-      href: "/tasks/ENG-129",
+      href: "/tasks/ORB-129",
     },
     project: { id: "proj-api", name: "API Platform", href: "/projects/api" },
     commentPreview: {
@@ -184,8 +184,8 @@ export const seedNotifications: Notification[] = [
         "Can we add a short section for error codes and a small example request/response for the auth endpoints?",
       thumbnailUrl:
         "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=160&h=120&q=60",
-      href: "/tasks/ENG-129",
-      threadHref: "/tasks/ENG-129#comments",
+      href: "/tasks/ORB-129",
+      threadHref: "/tasks/ORB-129#comments",
       moreCount: 7,
     },
   },

@@ -86,7 +86,7 @@ const conversations: Conversation[] = [
     unread: 2,
     avatarUrl: "https://randomuser.me/api/portraits/men/44.jpg",
     workItem: {
-      id: "ENG-412",
+      id: "ORB-412",
       title: "Migrate auth service to OIDC",
       status: "In Review",
       project: "Platform · Sprint 24",
@@ -172,7 +172,7 @@ const conversations: Conversation[] = [
     unread: 0,
     avatarUrl: "https://randomuser.me/api/portraits/women/63.jpg",
     workItem: {
-      id: "ENG-501",
+      id: "ORB-501",
       title: "SCIM provisioning documentation",
       status: "To Do",
       project: "Security · Docs guild",

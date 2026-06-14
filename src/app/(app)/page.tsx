@@ -61,19 +61,19 @@ type OpenIssue = {
 // Placeholder data until we connect a real backend (DB + API).
 const openIssues: OpenIssue[] = [
   {
-    id: "ENG-123",
+    id: "ORB-123",
     assignee: "Jacob Martinez",
     description: "Checkout fails when users apply two discount codes in the same cart.",
     avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
   },
   {
-    id: "ENG-124",
+    id: "ORB-124",
     assignee: "Luke Bell",
     description: "Export to CSV times out for workspaces with more than 10k rows.",
     avatarUrl: "https://randomuser.me/api/portraits/men/67.jpg",
   },
   {
-    id: "ENG-125",
+    id: "ORB-125",
     assignee: "Connor Mitchell",
     description: "Push notifications stopped arriving on Android after the last release.",
     avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg",
@@ -82,35 +82,35 @@ const openIssues: OpenIssue[] = [
 
 const myTasks: MyTask[] = [
   {
-    id: "ENG-123",
+    id: "ORB-123",
     title: "Implement user authentication flow",
     priority: "high",
     status: "in_progress",
     dueLabel: "May 18",
   },
   {
-    id: "ENG-129",
+    id: "ORB-129",
     title: "Update API documentation",
     priority: "medium",
     status: "todo",
     dueLabel: "Jun 4",
   },
   {
-    id: "ENG-131",
+    id: "ORB-131",
     title: "Fix responsive layout issues",
     priority: "high",
     status: "in_progress",
     dueLabel: "Jun 6",
   },
-  { id: "ENG-135", title: "Add dark mode support", priority: "low", status: "in_review" },
+  { id: "ORB-135", title: "Add dark mode support", priority: "low", status: "in_review" },
   {
-    id: "ENG-140",
+    id: "ORB-140",
     title: "Polish onboarding empty states",
     priority: "medium",
     status: "completed",
   },
   {
-    id: "ENG-141",
+    id: "ORB-141",
     title: "Audit role permissions for billing",
     priority: "low",
     status: "completed",

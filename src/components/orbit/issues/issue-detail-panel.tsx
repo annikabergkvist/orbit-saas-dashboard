@@ -48,7 +48,7 @@ function memberInitials(name: string) {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
       {children}
     </span>
   )
@@ -200,11 +200,11 @@ function PanelBody({
             </Link>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <FieldLabel>Due date</FieldLabel>
             <div
               className={cn(
-                "inline-flex h-9 items-center gap-1.5 text-sm",
+                "flex items-center gap-1.5 text-sm",
                 overdue ? "font-medium text-[var(--status-overdue-foreground)]" : "text-foreground"
               )}
             >
@@ -213,9 +213,9 @@ function PanelBody({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <FieldLabel>Created</FieldLabel>
-            <div className="inline-flex h-9 items-center text-sm text-muted-foreground">
+            <div className="flex items-center text-sm text-muted-foreground">
               {issue.createdLabel}
             </div>
           </div>

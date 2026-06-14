@@ -46,7 +46,7 @@ export type SortDir = "asc" | "desc"
 export const CURRENT_USER: IssueAssignee = {
   id: "u-annika",
   name: "Annika Bergkvist",
-  avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+  avatarUrl: "/avatars/annika.png?v=2",
 }
 
 /** Curated roster used for issue assignment (distinct avatars). */

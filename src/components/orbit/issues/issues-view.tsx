@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowDownWideNarrowIcon,
   ArrowUpNarrowWideIcon,
@@ -16,9 +16,9 @@ import {
 } from "lucide-react"
 
 import {
-  IssuePriorityBadge,
-  IssueStatusBadge,
-  issueStatusStripBackground,
+  IssuePriorityBars,
+  IssueStatusIcon,
+  issueStatusLabel,
 } from "@/components/orbit/issues/issue-badges"
 import { BulkActionBar } from "@/components/orbit/issues/bulk-action-bar"
 import { IssueDetailPanel } from "@/components/orbit/issues/issue-detail-panel"
@@ -285,6 +285,15 @@ function SelectBox({
   )
 }
 
+function ProjectPill({ slug }: { slug: string }) {
+  return (
+    <span className="hidden max-w-[11rem] items-center gap-1.5 rounded-md border border-foreground/10 bg-foreground/[0.03] px-2 py-0.5 text-xs text-muted-foreground md:inline-flex">
+      <span className="size-2 shrink-0 rounded-[3px] bg-foreground/30" aria-hidden />
+      <span className="truncate">{getProjectTitle(slug)}</span>
+    </span>
+  )
+}
+
 function IssueRow({
   issue,
   selected,
@@ -314,65 +323,66 @@ function IssueRow({
       }}
       aria-pressed={selected}
       className={cn(
-        "flex cursor-pointer overflow-hidden rounded-xl border transition-colors hover:bg-muted/30",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-        checked ? "bg-primary/5" : "bg-card",
-        selected ? "border-primary/50 ring-1 ring-primary/30" : "border-foreground/10"
+        "group/row relative flex h-10 cursor-pointer items-center gap-2.5 px-2.5 transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50",
+        "before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary before:transition-opacity",
+        selected
+          ? "bg-primary/10 before:opacity-100"
+          : cn(
+              "before:opacity-0 hover:bg-white/45 dark:hover:bg-white/[0.04]",
+              checked && "bg-primary/[0.06]"
+            )
       )}
     >
-      <div
-        className="w-1 shrink-0 self-stretch"
-        style={{ backgroundColor: issueStatusStripBackground(issue.status) }}
-        aria-hidden
+      <SelectBox
+        checked={checked}
+        onToggle={onToggleChecked}
+        label={checked ? `Deselect ${issue.id}` : `Select ${issue.id}`}
       />
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-        <SelectBox
-          checked={checked}
-          onToggle={onToggleChecked}
-          label={checked ? `Deselect ${issue.id}` : `Select ${issue.id}`}
-        />
-        <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
-          {issue.id}
-        </span>
-        <span className="min-w-[12rem] flex-1 truncate text-sm font-semibold text-foreground">
-          {issue.title}
-        </span>
 
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <IssueStatusBadge status={issue.status} />
-          {overdue ? <IssueStatusBadge status="overdue" /> : null}
-          <IssuePriorityBadge priority={issue.priority} />
-        </div>
+      <span title={`${issue.priority} priority`}>
+        <IssuePriorityBars priority={issue.priority} />
+      </span>
 
-        {assignee ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <Avatar className="size-7 ring-0" title={assignee.name}>
-              <AvatarImage src={assignee.avatarUrl} alt="" />
-              <AvatarFallback className="text-[10px] font-semibold">
-                {memberInitials(assignee.name)}
-              </AvatarFallback>
-            </Avatar>
-            <span className={cn("hidden truncate sm:inline", metaClass)}>{assignee.name}</span>
-          </div>
-        ) : null}
+      <span className="w-[3.75rem] shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground">
+        {issue.id}
+      </span>
 
-        <span className={cn("hidden shrink-0 md:inline", metaClass)}>
-          {getProjectTitle(issue.projectSlug)}
-        </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+        {issue.title}
+      </span>
+
+      {/* Right-aligned, fixed-width metadata columns (consistent across rows). */}
+      <div className="ml-auto flex shrink-0 items-center gap-3">
+        <ProjectPill slug={issue.projectSlug} />
 
         <span
           className={cn(
-            "inline-flex shrink-0 items-center gap-1.5",
-            overdue ? "font-medium text-[var(--status-overdue-foreground)]" : metaClass
+            "hidden w-[4.25rem] items-center justify-end gap-1 text-xs tabular-nums sm:inline-flex",
+            overdue
+              ? "font-medium text-[var(--status-overdue-foreground)]"
+              : metaClass
           )}
         >
           <CalendarIcon className="size-3.5 shrink-0" strokeWidth={1.75} />
-          {issue.dueLabel}
+          <span className="truncate">{issue.dueLabel}</span>
         </span>
 
-        <span className={cn("hidden shrink-0 lg:inline", metaClass)}>
-          Created {issue.createdLabel}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          {assignee ? (
+            <Avatar className="size-6 shrink-0 ring-0" title={assignee.name}>
+              <AvatarImage src={assignee.avatarUrl} alt="" />
+              <AvatarFallback className="text-[9px] font-semibold">
+                {memberInitials(assignee.name)}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <span className="size-6 shrink-0" aria-hidden />
+          )}
+          <span className={cn("hidden w-[6.5rem] truncate sm:inline", metaClass)}>
+            {assignee?.name ?? "Unassigned"}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -388,6 +398,8 @@ function StatusGroup({
   checkedIds,
   onToggleChecked,
   onToggleGroupChecked,
+  selectionActive,
+  onAddIssue,
 }: {
   status: WorkItemStatus
   issues: Issue[]
@@ -398,6 +410,7 @@ function StatusGroup({
   checkedIds: Set<string>
   onToggleChecked: (id: string) => void
   onToggleGroupChecked: (ids: string[], select: boolean) => void
+  onAddIssue: (status: WorkItemStatus) => void
 }) {
   const checkedCount = issues.reduce(
     (acc, issue) => acc + (checkedIds.has(issue.id) ? 1 : 0),
@@ -407,8 +420,8 @@ function StatusGroup({
   const someChecked = checkedCount > 0 && !allChecked
 
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex w-fit items-center gap-2">
+    <section>
+      <div className="group/header flex h-9 items-center gap-2.5 bg-foreground/[0.04] px-2.5">
         <SelectBox
           checked={allChecked}
           indeterminate={someChecked}
@@ -424,24 +437,35 @@ function StatusGroup({
           type="button"
           onClick={onToggle}
           aria-expanded={!collapsed}
-          className="flex items-center gap-2 rounded-md py-1 pr-2 text-left transition-colors hover:opacity-80"
+          className="flex flex-1 items-center gap-2 text-left transition-opacity hover:opacity-80"
         >
           <ChevronRightIcon
             className={cn(
-              "size-4 shrink-0 text-muted-foreground transition-transform",
+              "size-3.5 shrink-0 text-muted-foreground transition-transform",
               !collapsed && "rotate-90"
             )}
             strokeWidth={2}
           />
-          <IssueStatusBadge status={status} />
-          <span className="text-sm font-medium tabular-nums text-muted-foreground">
+          <IssueStatusIcon status={status} />
+          <span className="text-sm font-medium text-foreground">
+            {issueStatusLabel(status)}
+          </span>
+          <span className="text-xs tabular-nums text-muted-foreground">
             {issues.length}
           </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onAddIssue(status)}
+          aria-label={`New issue in ${issueStatusLabel(status)}`}
+          className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:opacity-100 group-hover/header:opacity-100"
+        >
+          <PlusIcon className="size-4" strokeWidth={2} />
         </button>
       </div>
 
       {collapsed ? null : (
-        <div className="flex flex-col gap-2">
+        <div className="divide-y divide-foreground/[0.06]">
           {issues.map((issue) => (
             <IssueRow
               key={issue.id}
@@ -460,9 +484,12 @@ function StatusGroup({
 
 export function IssuesView() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const [issues, setIssues] = React.useState<Issue[]>(issuesSeed)
   const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(null)
   const [newIssueOpen, setNewIssueOpen] = React.useState(false)
+  const [newIssueStatus, setNewIssueStatus] = React.useState<WorkItemStatus>("todo")
   const [checkedIds, setCheckedIds] = React.useState<Set<string>>(new Set())
   const [tab, setTab] = React.useState<IssueTab>("all")
   const [filters, setFilters] = React.useState<Filters>(emptyFilters)
@@ -634,6 +661,22 @@ export function IssuesView() {
 
   const clearSelection = React.useCallback(() => setCheckedIds(new Set()), [])
 
+  const openNewIssue = React.useCallback((status: WorkItemStatus = "todo") => {
+    setNewIssueStatus(status)
+    setNewIssueOpen(true)
+  }, [])
+
+  // Open the New Issue modal when deep-linked via ?new=1 (e.g. sidebar button),
+  // then strip the param so repeat clicks re-trigger it.
+  React.useEffect(() => {
+    if (searchParams.get("new") === null) return
+    openNewIssue()
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("new")
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [searchParams, openNewIssue, router, pathname])
+
   const bulkPatch = (patch: Partial<Issue>) => {
     setIssues((prev) =>
       prev.map((i) => (checkedVisible.has(i.id) ? { ...i, ...patch } : i))
@@ -678,7 +721,7 @@ export function IssuesView() {
 
           <Button
             type="button"
-            onClick={() => setNewIssueOpen(true)}
+            onClick={() => openNewIssue()}
             className="h-9 shrink-0 gap-1.5 px-4"
           >
             <PlusIcon className="size-4" strokeWidth={2} />
@@ -811,7 +854,7 @@ export function IssuesView() {
             : "No issues in this view yet."}
         </p>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="glass-subtle panel-glass-subtle divide-y divide-foreground/[0.06] overflow-hidden rounded-xl">
           {groups.map((group) => (
             <StatusGroup
               key={group.status}
@@ -824,6 +867,7 @@ export function IssuesView() {
               checkedIds={checkedVisible}
               onToggleChecked={toggleChecked}
               onToggleGroupChecked={toggleGroupChecked}
+              onAddIssue={openNewIssue}
             />
           ))}
         </div>
@@ -844,6 +888,7 @@ export function IssuesView() {
       <NewIssueDialog
         open={newIssueOpen}
         onOpenChange={setNewIssueOpen}
+        initialStatus={newIssueStatus}
         onCreate={createIssue}
       />
 

@@ -246,6 +246,8 @@ export function OrbitAppSidebar() {
 
           className="h-10 w-full justify-center gap-2 px-4 group-data-[collapsible=icon]:justify-center"
 
+          render={<Link href="/issues?new=1" />}
+
         >
 
           <PlusIcon />

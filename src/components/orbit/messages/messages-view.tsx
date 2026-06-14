@@ -34,7 +34,7 @@ import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
-const currentUserAvatar = "https://randomuser.me/api/portraits/women/68.jpg"
+const currentUserAvatar = "/avatars/annika.png?v=2"
 
 type ChatMessage = {
   id: string

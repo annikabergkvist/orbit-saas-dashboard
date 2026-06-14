@@ -4,8 +4,8 @@ export type WorkItemStatus = "todo" | "in_progress" | "in_review" | "completed"
 /** Issue tracker statuses — work items plus overdue. */
 export type IssueStatus = WorkItemStatus | "overdue"
 
-/** Kanban column ids (work items plus launched). */
-export type BoardColumnId = WorkItemStatus | "launched"
+/** Kanban column ids (work items through completed). */
+export type BoardColumnId = WorkItemStatus
 
 /** Project grid lifecycle tabs. */
 export type ProjectLifecycle =
@@ -31,7 +31,6 @@ export const BOARD_COLUMN_LABELS: Record<BoardColumnId, string> = {
   in_progress: "In Progress",
   in_review: "In Review",
   completed: "Completed",
-  launched: "Launched",
 }
 
 export function isWorkItemStatus(value: string): value is WorkItemStatus {
@@ -48,7 +47,7 @@ export function isIssueStatus(value: string): value is IssueStatus {
 }
 
 export function isBoardColumnId(value: string): value is BoardColumnId {
-  return isWorkItemStatus(value) || value === "launched"
+  return isWorkItemStatus(value)
 }
 
 export function isProjectLifecycle(value: string): value is ProjectLifecycle {

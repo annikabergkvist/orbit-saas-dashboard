@@ -102,7 +102,6 @@ function groupTasksByColumn(tasks: BoardTask[]): Record<BoardColumnId, BoardTask
     in_progress: [],
     in_review: [],
     completed: [],
-    launched: [],
   }
   for (const task of tasks) {
     map[task.column].push(task)
@@ -137,8 +136,6 @@ function BoardTaskCard({
   task: BoardTask
   className?: string
 }) {
-  const launchWhen = task.launchDateTime ?? task.dueLabel
-  const showLaunchMeta = task.column === "launched" && Boolean(launchWhen)
   const isCompleted = isCompletedColumn(task.column)
 
   return (
@@ -185,13 +182,6 @@ function BoardTaskCard({
                 <Image src={src} alt="" fill sizes="120px" className="object-cover" unoptimized />
               </div>
             ))}
-          </div>
-        ) : null}
-
-        {showLaunchMeta ? (
-          <div className={cn("inline-flex items-center gap-2", metaClass)}>
-            <CalendarIcon className="size-4 shrink-0" strokeWidth={1.75} />
-            <span>{launchWhen}</span>
           </div>
         ) : null}
 
@@ -255,8 +245,6 @@ function BoardTaskCard({
             <CheckCheckIcon className="size-3.5 shrink-0" strokeWidth={2.25} />
             <span>Completed</span>
           </span>
-        ) : task.column === "launched" ? (
-          <span className="ml-auto font-medium text-muted-foreground">Launched</span>
         ) : (
           <span className="ml-auto inline-flex items-center gap-1.5">
             <CalendarIcon className="size-3.5" strokeWidth={1.75} />
@@ -324,6 +312,9 @@ function KanbanColumn({
             <span className={cn("size-2 shrink-0 rounded-full", col.dotClass)} aria-hidden />
             {col.label}
           </div>
+          <span className="text-xs font-semibold tabular-nums text-[#9aa3b2]">
+            {tasks.length}
+          </span>
           <div className="ml-auto flex items-center gap-0.5">
             <button
               type="button"

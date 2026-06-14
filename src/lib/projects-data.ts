@@ -152,11 +152,36 @@ function sortDashboardProjects(
   }
 }
 
+/**
+ * A project "needs attention" when it is still in flight (not completed or
+ * launched) and is either past its due date or a high-priority project that is
+ * not yet near the finish line. Heuristic placeholder until real risk signals
+ * exist; mirrors the dashboard "Needs Attention" KPI.
+ */
+export function projectNeedsAttention(project: ProjectSummary): boolean {
+  if (project.lifecycle === "completed" || project.lifecycle === "launched") {
+    return false
+  }
+  return (
+    isDueOverdue(project.dueLabel) ||
+    (project.priority === "high" && project.progress < 80)
+  )
+}
+
+export function countActiveProjects(): number {
+  return projectsSeed.filter((p) => p.lifecycle === "active").length
+}
+
+export function countProjectsNeedingAttention(): number {
+  return projectsSeed.filter(projectNeedsAttention).length
+}
+
 /** Same filtering/sorting as `/projects` — single source of truth for project lists. */
 export function listProjects(options?: {
   lifecycle?: ProjectLifecycle | "all"
   sort?: ProjectSort
   search?: string
+  needsAttention?: boolean
 }): ProjectSummary[] {
   const lifecycle = options?.lifecycle ?? "all"
   const sort = options?.sort ?? "name-asc"
@@ -166,6 +191,10 @@ export function listProjects(options?: {
     lifecycle === "all"
       ? [...projectsSeed]
       : projectsSeed.filter((p) => p.lifecycle === lifecycle)
+
+  if (options?.needsAttention) {
+    list = list.filter(projectNeedsAttention)
+  }
 
   if (query) {
     list = list.filter(
@@ -510,13 +539,6 @@ export const boardColumns: {
       "bg-[var(--status-completed)] text-[var(--status-completed-foreground)]",
     dotClass: "bg-[var(--status-completed-foreground)]",
   },
-  {
-    id: "launched",
-    label: "Launched",
-    headerClass:
-      "bg-[var(--status-launched)] text-[var(--status-launched-foreground)]",
-    dotClass: "bg-[var(--status-launched-foreground)]",
-  },
 ]
 
 const designTeamBoardTasks: BoardTask[] = [
@@ -661,7 +683,7 @@ const designTeamBoardTasks: BoardTask[] = [
     title: "Beta waitlist landing page",
     description:
       "Shipped pre-launch page with signup, FAQ, and brand assets tied to the portal refresh.",
-    column: "launched",
+    column: "completed",
     tags: ["design"],
     comments: 7,
     attachments: 3,
@@ -817,7 +839,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         id: "si-l1",
         title: "Internal dogfood rollout",
         description: "Live for Orbit staff workspaces with feedback channel in #product-alerts.",
-        column: "launched",
+        column: "completed",
         tags: ["development"],
         comments: 18,
         attachments: 4,
@@ -938,7 +960,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         title: "Internal metrics preview",
         description:
           "Read-only dashboard shipped to leadership for feedback before GA rollout.",
-        column: "launched",
+        column: "completed",
         tags: ["development"],
         comments: 12,
         attachments: 1,
@@ -1090,7 +1112,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         title: "Public docs site",
         description:
           "Live developer portal with search, versioning, and feedback widget on every page.",
-        column: "launched",
+        column: "completed",
         tags: ["documentation"],
         comments: 31,
         attachments: 5,
@@ -1241,7 +1263,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         title: "Prefetch tuning rollout",
         description:
           "Shipped smarter route prefetching for top nav links in production workspaces.",
-        column: "launched",
+        column: "completed",
         tags: ["development"],
         comments: 9,
         attachments: 2,
@@ -1412,7 +1434,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         title: "iOS 1.0 store listing",
         description:
           "Live on the App Store with localized description and support links to help center.",
-        column: "launched",
+        column: "completed",
         tags: ["design"],
         comments: 31,
         attachments: 7,
@@ -1431,7 +1453,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         title: "Android open beta",
         description:
           "Public beta track live with in-app upgrade prompt for legacy APK installs.",
-        column: "launched",
+        column: "completed",
         tags: ["development"],
         comments: 24,
         attachments: 6,
@@ -1568,7 +1590,6 @@ export function getBoardForProject(project: ProjectSummary): ProjectBoard {
     "in_progress",
     "in_review",
     "completed",
-    "launched",
   ]
   const tasks = fallbackByColumn.flatMap((column) => {
     const template = designTeamBoardTasks.find((t) => t.column === column)
@@ -1677,11 +1698,7 @@ export function getDashboardKpiCounts(
       if (task.column === "in_progress") {
         inProgress += 1
       }
-      if (
-        task.column !== "completed" &&
-        task.column !== "launched" &&
-        isDueOverdue(task.dueLabel)
-      ) {
+      if (task.column !== "completed" && isDueOverdue(task.dueLabel)) {
         needsAttention += 1
       }
     }

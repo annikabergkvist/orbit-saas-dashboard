@@ -125,7 +125,6 @@
   --status-chart-in-progress: var(--chart-segment-1);
   --status-chart-in-review: var(--chart-segment-4);
   --status-chart-completed: var(--chart-segment-5);
-  --status-chart-launched: var(--chart-segment-2);
   --status-chart-overdue: var(--chart-segment-3);
 
   /* Project type category pills — on solid cards use secondary; glass cards use --category-on-glass. */
@@ -222,7 +221,6 @@
   --status-chart-in-progress: var(--chart-segment-1);
   --status-chart-in-review: var(--chart-segment-4);
   --status-chart-completed: var(--chart-segment-5);
-  --status-chart-launched: var(--chart-segment-2);
   --status-chart-overdue: var(--chart-segment-3);
 
   --category: oklch(0.4 0.01 284);

@@ -11,6 +11,8 @@ import {
   PaperclipIcon,
   PlusIcon,
   SearchIcon,
+  TriangleAlertIcon,
+  XIcon,
 } from "lucide-react"
 import {
   CategoryTokenBadge,
@@ -203,6 +205,7 @@ export function ProjectsOverview() {
   const [tab, setTab] = React.useState<"all" | ProjectLifecycle>("all")
   const [search, setSearch] = React.useState("")
   const [sort, setSort] = React.useState<ProjectSort>("name-asc")
+  const [attentionOnly, setAttentionOnly] = React.useState(false)
 
   React.useEffect(() => {
     const tabParam = searchParams.get("tab")
@@ -215,6 +218,11 @@ export function ProjectsOverview() {
     const sortParam = searchParams.get("sort")
     if (sortParam && projectSortValues.has(sortParam as ProjectSort)) {
       setSort(sortParam as ProjectSort)
+    }
+
+    if (searchParams.get("filter") === "attention") {
+      setAttentionOnly(true)
+      setTab("all")
     }
   }, [searchParams])
 
@@ -239,8 +247,9 @@ export function ProjectsOverview() {
         lifecycle: tab,
         sort,
         search,
+        needsAttention: attentionOnly,
       }),
-    [tab, search, sort]
+    [tab, search, sort, attentionOnly]
   )
 
   const sortLabel = sortOptions.find((o) => o.value === sort)?.label ?? "Sort"
@@ -252,6 +261,7 @@ export function ProjectsOverview() {
         onValueChange={(v) => {
           if (v === "all" || isProjectLifecycle(v)) {
             setTab(v)
+            setAttentionOnly(false)
           }
         }}
         className="gap-8"
@@ -329,13 +339,29 @@ export function ProjectsOverview() {
           </DropdownMenu>
         </div>
 
-        <TabsContent value={tab} className="mt-0 outline-none">
+        <TabsContent value={tab} className="mt-0 flex flex-col gap-4 outline-none">
+          {attentionOnly ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Filtered by</span>
+              <button
+                type="button"
+                onClick={() => setAttentionOnly(false)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--status-overdue)]/40 bg-[var(--status-overdue)]/10 px-3 py-1 text-xs font-medium text-[var(--status-overdue-foreground)] transition-colors hover:bg-[var(--status-overdue)]/20"
+              >
+                <TriangleAlertIcon className="size-3.5 shrink-0" strokeWidth={2} />
+                Needs attention
+                <XIcon className="size-3.5 shrink-0 opacity-70" strokeWidth={2.25} />
+              </button>
+            </div>
+          ) : null}
           <ProjectGrid
             projects={filteredProjects}
             emptyMessage={
-              search.trim()
-                ? "No projects match your search."
-                : "No projects in this view yet."
+              attentionOnly
+                ? "Nothing needs attention right now."
+                : search.trim()
+                  ? "No projects match your search."
+                  : "No projects in this view yet."
             }
           />
         </TabsContent>

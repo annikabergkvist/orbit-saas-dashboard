@@ -22,6 +22,10 @@ import {
   issueStatusStripBackground,
 } from "@/components/orbit/issues/issue-badges"
 import type { MyTaskStatus } from "@/lib/status"
+import {
+  countProjectsNeedingAttention,
+  getDashboardKpiCounts,
+} from "@/lib/projects-data"
 
 // Shared UI primitives from shadcn/ui (Base UI flavor).
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -125,34 +129,40 @@ const myMeetings: Meeting[] = [
   { id: "meet-2", title: "User Research", time: "2:30 PM", provider: "Zoom" },
 ]
 
+// Live counts so the headline KPIs stay in sync with project/task data.
+// Project-level cards drill into /projects; task-level cards (In Progress,
+// Assigned to Me) drill into /issues, which lights up once that page exists.
+const kpiCounts = getDashboardKpiCounts(myTasks)
+const needsAttentionCount = countProjectsNeedingAttention()
+
 const dashboardKpis = [
   {
     icon: FolderKanbanIcon,
     title: "Active Projects",
-    value: "5",
-    context: "2 due this week",
+    value: String(kpiCounts.activeProjects),
+    context: "Currently in flight",
     href: "/projects?tab=active",
   },
   {
     icon: ClipboardListIcon,
     title: "In Progress",
-    value: "17",
-    context: "6 ahead of schedule",
-    href: "/projects?tab=active",
+    value: String(kpiCounts.inProgress),
+    context: "Tasks across all boards",
+    href: "/issues?status=in_progress",
   },
   {
     icon: UserCheckIcon,
     title: "Assigned to Me",
-    value: "4",
-    context: "1 due today",
-    href: "/projects?sort=priority-desc",
+    value: String(kpiCounts.assignedToMe),
+    context: "Open tasks on your plate",
+    href: "/issues?assignee=me",
   },
   {
     icon: CalendarClockIcon,
     title: "Needs Attention",
-    value: "3",
-    context: "down from 8 last sprint",
-    href: "/projects?sort=progress-asc",
+    value: String(needsAttentionCount),
+    context: "Overdue or at-risk projects",
+    href: "/projects?filter=attention&sort=progress-asc",
   },
 ] as const
 

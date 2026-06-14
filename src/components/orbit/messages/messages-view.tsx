@@ -88,7 +88,7 @@ const conversations: Conversation[] = [
     workItem: {
       id: "ENG-412",
       title: "Migrate auth service to OIDC",
-      status: "In review",
+      status: "In Review",
       project: "Platform · Sprint 24",
     },
     messages: [
@@ -143,7 +143,7 @@ const conversations: Conversation[] = [
     workItem: {
       id: "ORB-128",
       title: "Export job timeouts over 10k rows",
-      status: "In progress",
+      status: "In Progress",
       project: "ACME Corp · Success track",
     },
     messages: [
@@ -174,7 +174,7 @@ const conversations: Conversation[] = [
     workItem: {
       id: "ENG-501",
       title: "SCIM provisioning documentation",
-      status: "To do",
+      status: "To Do",
       project: "Security · Docs guild",
     },
     messages: [
@@ -266,13 +266,10 @@ export function MessagesView() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-transparent">
       {/* Page toolbar — compact on small screens so the thread lands in the first viewport */}
-      <div className="flex shrink-0 flex-wrap items-end gap-x-3 gap-y-3 border-b border-border bg-card px-4 py-3 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-4 md:px-10 md:py-5 lg:px-12">
+      <div className="flex shrink-0 flex-wrap items-end gap-x-3 gap-y-3 border-b border-border bg-transparent px-4 py-3 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-4 md:px-10 md:py-5 lg:px-12">
         <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-          <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl md:text-2xl">
-            Messages
-          </h1>
           <p className="hidden max-w-xl text-sm leading-relaxed text-muted-foreground sm:block">
-            DMs, mentions, and customer threads across your workspaces — tied to tickets and projects.
+            DMs, mentions, and customer threads across your workspaces — tied to issues and projects.
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 md:w-auto md:justify-end">
@@ -290,7 +287,7 @@ export function MessagesView() {
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search people, channels, and tickets"
+              placeholder="Search people, channels, and issues"
               className="h-10 rounded-lg border-border bg-background pl-10 text-sm shadow-none"
             />
           </div>
@@ -500,7 +497,7 @@ export function MessagesView() {
             </div>
           ) : null}
 
-          {/* Linked assignment / ticket */}
+          {/* Linked assignment / issue */}
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 sm:gap-3 sm:px-5 md:px-6">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted font-mono text-[10px] font-bold leading-tight text-foreground sm:text-[11px]">
               {active.workItem.id}
@@ -523,7 +520,7 @@ export function MessagesView() {
                 size="sm"
                 className="h-8 rounded-md border-border px-3 text-xs font-medium shadow-none sm:text-sm"
               >
-                View ticket
+                View issue
               </Button>
               <Button
                 type="button"

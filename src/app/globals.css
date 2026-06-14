@@ -46,6 +46,22 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Badge / pill tokens — optional Tailwind utilities (bg-status-todo, text-category-foreground, etc.). */
+  --color-status-todo: var(--status-todo);
+  --color-status-todo-foreground: var(--status-todo-foreground);
+  --color-status-in-progress: var(--status-in-progress);
+  --color-status-in-progress-foreground: var(--status-in-progress-foreground);
+  --color-status-in-review: var(--status-in-review);
+  --color-status-in-review-foreground: var(--status-in-review-foreground);
+  --color-status-completed: var(--status-completed);
+  --color-status-completed-foreground: var(--status-completed-foreground);
+  --color-status-launched: var(--status-launched);
+  --color-status-launched-foreground: var(--status-launched-foreground);
+  --color-status-overdue: var(--status-overdue);
+  --color-status-overdue-foreground: var(--status-overdue-foreground);
+  --color-category: var(--category);
+  --color-category-foreground: var(--category-foreground);
 }
 
 :root {
@@ -72,54 +88,55 @@
   --ring: var(--primary);
   --chart-grid: oklch(0.965 0 0);
 
-  /* Charts (used by Recharts as CSS vars). */
-  --chart-1: var(--primary);
-  --chart-2: oklch(0.72 0.17 200); /* teal */
-  --chart-3: oklch(0.72 0.19 145); /* green */
-  --chart-4: oklch(0.74 0.17 70); /* amber */
-  --chart-5: oklch(0.62 0.21 25); /* orange/red */
+  /* Orbit chart palette (donut segments, legends, rings). */
+  --purple: #6c5ce7;
+  --chart-segment-1: var(--purple);
+  --chart-segment-2: #818cf8;
+  --chart-segment-3: #e879a0;
+  --chart-segment-4: #f59e0b;
+  --chart-segment-5: #14b8a6;
+  --chart-1: var(--chart-segment-1);
+  --chart-2: var(--chart-segment-2);
+  --chart-3: var(--chart-segment-3);
+  --chart-4: var(--chart-segment-4);
+  --chart-5: var(--chart-segment-5);
 
-  /* Activity chart series colors. */
-  --activity-created: oklch(0.62 0.14 245); /* blue */
-  --activity-completed: hsl(32 95% 55%); /* orange (less red) */
+  /* Activity chart series colors (reference: purple + coral). */
+  --activity-created: oklch(0.48 0.14 292);
+  --activity-completed: oklch(0.72 0.12 18);
+  --activity-highlight: oklch(0.55 0.1 292 / 0.1);
 
   /* Issue status + priority tokens (badges, pills, etc). */
-  --status-todo: oklch(0.93 0 0);
-  --status-todo-foreground: oklch(0.35 0 0);
-  --status-in-progress: oklch(0.93 0.07 285);
-  --status-in-progress-foreground: oklch(0.38 0.18 285);
-  /* Less turquoise, more blue. */
-  --status-in-review: oklch(0.94 0.06 205);
-  --status-in-review-foreground: oklch(0.36 0.14 205);
-  --status-done: oklch(0.93 0.08 145);
-  --status-done-foreground: oklch(0.36 0.16 145);
+  --status-todo: oklch(0.979 0.008 85.5);
+  --status-todo-foreground: oklch(0.491 0.048 62.5);
+  --status-in-progress: oklch(0.945 0.038 293);
+  --status-in-progress-foreground: oklch(0.417 0.224 286);
+  --status-in-review: oklch(0.962 0.059 95);
+  --status-in-review-foreground: oklch(0.553 0.145 57);
+  --status-completed: oklch(0.962 0.044 156);
+  --status-completed-foreground: oklch(0.527 0.137 152);
+  --status-launched: oklch(0.932 0.032 256);
+  --status-launched-foreground: oklch(0.488 0.192 264);
+  --status-overdue: oklch(0.936 0.032 17);
+  --status-overdue-foreground: oklch(0.505 0.19 27);
 
-  /* Status chart colors (donut chart). */
-  /* Match reference: red / purple / yellow / green */
-  --status-chart-todo: oklch(0.62 0.03 255); /* slate */
-  --status-chart-in-progress: var(--primary); /* purple */
-  --status-chart-in-review: oklch(0.78 0.15 70); /* yellow */
-  --status-chart-done: oklch(0.73 0.18 145); /* green */
+  /* Status chart colors (donut chart) — mapped to Orbit segments. */
+  --status-chart-todo: var(--chart-segment-2);
+  --status-chart-in-progress: var(--chart-segment-1);
+  --status-chart-in-review: var(--chart-segment-4);
+  --status-chart-completed: var(--chart-segment-5);
+  --status-chart-launched: var(--chart-segment-2);
+  --status-chart-overdue: var(--chart-segment-3);
 
-  --priority-low: oklch(0.98 0 0);
-  --priority-low-foreground: oklch(0.38 0 0);
-  /* Medium priority is blue in the reference. */
-  --priority-medium: oklch(0.94 0.04 255);
-  --priority-medium-foreground: oklch(0.45 0.14 250);
-  --priority-high: oklch(0.985 0.02 27);
-  --priority-high-foreground: oklch(0.43 0.19 27);
+  /* Project type category pills — on solid cards use secondary; glass cards use --category-on-glass. */
+  --category: var(--secondary);
+  --category-on-glass: oklch(0.928 0.01 264);
+  --category-foreground: oklch(0.439 0 0);
 
-  /* Kanban task tag pills */
-  --tag-research: oklch(0.94 0.05 245);
-  --tag-research-foreground: oklch(0.38 0.12 245);
-  --tag-design: oklch(0.95 0.09 350);
-  --tag-design-foreground: oklch(0.4 0.17 350);
-  --tag-development: var(--status-in-review);
-  --tag-development-foreground: var(--status-in-review-foreground);
-  --tag-ux-writing: oklch(0.96 0.07 85);
-  --tag-ux-writing-foreground: oklch(0.42 0.14 75);
-  --tag-documentation: oklch(0.94 0.05 165);
-  --tag-documentation-foreground: oklch(0.36 0.12 165);
+  /* Priority pills — outlined; foreground is border + text color. */
+  --priority-low-foreground: oklch(0.704 0.04 256);
+  --priority-medium-foreground: oklch(0.705 0.16 70);
+  --priority-high-foreground: oklch(0.628 0.218 25);
 
   /* KPI delta pills (used on dashboard cards). */
   --kpi-delta-up: oklch(0.975 0.03 145);
@@ -135,6 +152,10 @@
   --glass-bg: rgb(255 255 255 / 0.2);
   --glass-blur: 44px;
   --glass-saturate: 1.85;
+  /* Dashboard content cards — frosted but closer to solid white than KPIs. */
+  --glass-subtle-bg: rgb(255 255 255 / 0.62);
+  --glass-subtle-blur: 18px;
+  --glass-subtle-saturate: 1.35;
   /* Sidebar (white, like the reference). */
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -168,46 +189,49 @@
   --ring: var(--primary);
   --chart-grid: oklch(1 0 0 / 7%);
 
-  --chart-1: var(--primary);
-  --chart-2: oklch(0.78 0.15 200);
-  --chart-3: oklch(0.8 0.15 145);
-  --chart-4: oklch(0.82 0.14 70);
-  --chart-5: oklch(0.74 0.17 25);
+  --purple: #6c5ce7;
+  --chart-segment-1: var(--purple);
+  --chart-segment-2: #818cf8;
+  --chart-segment-3: #e879a0;
+  --chart-segment-4: #f59e0b;
+  --chart-segment-5: #14b8a6;
+  --chart-1: var(--chart-segment-1);
+  --chart-2: var(--chart-segment-2);
+  --chart-3: var(--chart-segment-3);
+  --chart-4: var(--chart-segment-4);
+  --chart-5: var(--chart-segment-5);
 
-  --activity-created: oklch(0.74 0.12 245);
-  --activity-completed: hsl(32 95% 55%);
+  --activity-created: oklch(0.62 0.14 292);
+  --activity-completed: oklch(0.76 0.11 18);
+  --activity-highlight: oklch(0.62 0.1 292 / 0.14);
 
-  --status-todo: oklch(0.39 0 0);
-  --status-todo-foreground: oklch(0.92 0 0);
-  --status-in-progress: oklch(0.39 0.07 285);
-  --status-in-progress-foreground: oklch(0.88 0.12 285);
-  --status-in-review: oklch(0.42 0.06 205);
-  --status-in-review-foreground: oklch(0.92 0.1 205);
-  --status-done: oklch(0.39 0.07 145);
-  --status-done-foreground: oklch(0.9 0.11 145);
+  --status-todo: oklch(0.36 0.02 75);
+  --status-todo-foreground: oklch(0.88 0.04 75);
+  --status-in-progress: oklch(0.34 0.06 285);
+  --status-in-progress-foreground: oklch(0.86 0.1 285);
+  --status-in-review: oklch(0.38 0.06 70);
+  --status-in-review-foreground: oklch(0.9 0.1 70);
+  --status-completed: oklch(0.35 0.06 145);
+  --status-completed-foreground: oklch(0.88 0.1 145);
+  --status-launched: oklch(0.34 0.06 250);
+  --status-launched-foreground: oklch(0.88 0.08 250);
+  --status-overdue: oklch(0.36 0.08 25);
+  --status-overdue-foreground: oklch(0.9 0.12 25);
 
-  --status-chart-todo: oklch(0.78 0.03 255);
-  --status-chart-in-progress: var(--primary);
-  --status-chart-in-review: oklch(0.84 0.12 70);
-  --status-chart-done: oklch(0.82 0.14 145);
+  --status-chart-todo: var(--chart-segment-2);
+  --status-chart-in-progress: var(--chart-segment-1);
+  --status-chart-in-review: var(--chart-segment-4);
+  --status-chart-completed: var(--chart-segment-5);
+  --status-chart-launched: var(--chart-segment-2);
+  --status-chart-overdue: var(--chart-segment-3);
 
-  --priority-low: oklch(0.32 0 0);
-  --priority-low-foreground: oklch(0.92 0 0);
-  --priority-medium: oklch(0.36 0.09 70);
-  --priority-medium-foreground: oklch(0.92 0.12 70);
-  --priority-high: oklch(0.36 0.1 25);
-  --priority-high-foreground: oklch(0.92 0.14 25);
+  --category: oklch(0.4 0.01 284);
+  --category-on-glass: oklch(0.36 0.01 284);
+  --category-foreground: oklch(0.9 0.01 284);
 
-  --tag-research: oklch(0.4 0.07 245);
-  --tag-research-foreground: oklch(0.9 0.1 245);
-  --tag-design: oklch(0.42 0.09 350);
-  --tag-design-foreground: oklch(0.92 0.12 350);
-  --tag-development: var(--status-in-review);
-  --tag-development-foreground: var(--status-in-review-foreground);
-  --tag-ux-writing: oklch(0.44 0.08 85);
-  --tag-ux-writing-foreground: oklch(0.93 0.11 85);
-  --tag-documentation: oklch(0.4 0.06 165);
-  --tag-documentation-foreground: oklch(0.92 0.1 165);
+  --priority-low-foreground: oklch(0.68 0.04 256);
+  --priority-medium-foreground: oklch(0.78 0.14 70);
+  --priority-high-foreground: oklch(0.72 0.18 25);
 
   --kpi-delta-up: oklch(0.45 0.06 145);
   --kpi-delta-up-foreground: oklch(0.95 0.08 145);
@@ -254,7 +278,6 @@
   @apply glass-surface;
 }
 
-/* Header icon buttons + profile trigger (frosted hover, matches glass UI). */
 @utility header-action-hover {
   transition-property: color, background-color, box-shadow;
   transition-duration: 150ms;
@@ -292,6 +315,31 @@
     4px 6px 18px -10px rgb(88 28 135 / 0.1);
 }
 
+/* Dashboard content cards — light frost, mostly opaque. */
+@utility glass-subtle {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: none;
+  --category-pill-bg: var(--category-on-glass);
+  background-color: var(--glass-subtle-bg);
+  backdrop-filter: blur(var(--glass-subtle-blur)) saturate(var(--glass-subtle-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-subtle-blur)) saturate(var(--glass-subtle-saturate));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.82),
+    inset 0 0 0 1px rgb(255 255 255 / 0.5),
+    0 6px 24px -8px rgb(15 23 42 / 0.1),
+    0 2px 10px -6px rgb(88 28 135 / 0.05);
+}
+
+@utility panel-glass-subtle {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.82),
+    inset 0 0 0 1px rgb(255 255 255 / 0.5),
+    0 8px 28px -10px rgb(15 23 42 / 0.11),
+    0 3px 12px -8px rgb(88 28 135 / 0.06);
+}
+
 @utility glass-menu {
   @apply glass-surface;
   box-shadow:
@@ -321,7 +369,9 @@
 /* Sandblasted grain. */
 .glass-surface::before,
 .glass-menu::before,
+.glass-subtle::before,
 .panel-glass::before,
+.panel-glass-subtle::before,
 .sidebar-glass::before {
   content: "";
   position: absolute;
@@ -338,7 +388,9 @@
 /* Diagonal light sheen (Glass UI — not on sidebar; flush top edge). */
 .glass-surface::after,
 .glass-menu::after,
-.panel-glass::after {
+.glass-subtle::after,
+.panel-glass::after,
+.panel-glass-subtle::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -357,9 +409,24 @@
   display: none;
 }
 
+.glass-subtle::before {
+  opacity: 0.03;
+}
+
+.glass-subtle::after {
+  background: linear-gradient(
+    145deg,
+    rgb(255 255 255 / 0.14) 0%,
+    rgb(255 255 255 / 0.04) 28%,
+    transparent 52%
+  );
+}
+
 .glass-surface > *,
 .glass-menu > *,
+.glass-subtle > *,
 .panel-glass > *,
+.panel-glass-subtle > *,
 .sidebar-glass > * {
   position: relative;
   z-index: 1;

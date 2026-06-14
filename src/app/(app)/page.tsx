@@ -2,8 +2,8 @@ import Image from "next/image"
 import Link from "next/link"
 import {
   ArrowUpRightIcon,
+  CalendarClockIcon,
   CalendarIcon,
-  CheckCircleIcon,
   CheckIcon,
   ChevronRightIcon,
   ClipboardListIcon,
@@ -14,13 +14,14 @@ import {
 
 // Orbit-specific building blocks.
 import { ClaritySliderLineIcon } from "@/components/icons/clarity-slider-line-icon"
-import { ActivityOverviewChart } from "@/components/orbit/charts/activity-overview-chart"
-import { IssuesByStatusDonut } from "@/components/orbit/charts/issues-by-status-donut"
+import { ProjectTimelineCard } from "@/components/orbit/projects/project-timeline-card"
+import { ProjectsProgressCard } from "@/components/orbit/projects/projects-progress-card"
 import {
   IssuePriorityBadge,
   IssueStatusBadge,
   issueStatusStripBackground,
 } from "@/components/orbit/issues/issue-badges"
+import type { MyTaskStatus } from "@/lib/status"
 
 // Shared UI primitives from shadcn/ui (Base UI flavor).
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -33,18 +34,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { getBoardForProject, projectsSeed } from "@/lib/projects-data"
 import { cn } from "@/lib/utils"
 
-type Issue = {
+type MyTask = {
   id: string
   title: string
   assignee?: string
   priority: "low" | "medium" | "high"
-  status: "todo" | "in_progress" | "in_review" | "done"
+  status: MyTaskStatus
+  dueLabel?: string
 }
 
-type OpenTicket = {
+type OpenIssue = {
   id: string
   assignee: string
   /** Shown under the name (grey line), like the reference copy. */
@@ -54,7 +55,7 @@ type OpenTicket = {
 }
 
 // Placeholder data until we connect a real backend (DB + API).
-const openTickets: OpenTicket[] = [
+const openIssues: OpenIssue[] = [
   {
     id: "ENG-123",
     assignee: "Jacob Martinez",
@@ -75,27 +76,40 @@ const openTickets: OpenTicket[] = [
   },
 ]
 
-const myTasks: Issue[] = [
+const myTasks: MyTask[] = [
   {
     id: "ENG-123",
     title: "Implement user authentication flow",
     priority: "high",
     status: "in_progress",
+    dueLabel: "May 18",
   },
-  { id: "ENG-129", title: "Update API documentation", priority: "medium", status: "todo" },
-  { id: "ENG-131", title: "Fix responsive layout issues", priority: "high", status: "in_progress" },
+  {
+    id: "ENG-129",
+    title: "Update API documentation",
+    priority: "medium",
+    status: "todo",
+    dueLabel: "Jun 4",
+  },
+  {
+    id: "ENG-131",
+    title: "Fix responsive layout issues",
+    priority: "high",
+    status: "in_progress",
+    dueLabel: "Jun 6",
+  },
   { id: "ENG-135", title: "Add dark mode support", priority: "low", status: "in_review" },
   {
     id: "ENG-140",
     title: "Polish onboarding empty states",
     priority: "medium",
-    status: "done",
+    status: "completed",
   },
   {
     id: "ENG-141",
     title: "Audit role permissions for billing",
     priority: "low",
-    status: "done",
+    status: "completed",
   },
 ]
 
@@ -107,36 +121,40 @@ type Meeting = {
 }
 
 const myMeetings: Meeting[] = [
-  { id: "meet-1", title: "App Project", time: "6:45 PM", provider: "Meet" },
-  { id: "meet-2", title: "User Research", time: "6:45 PM", provider: "Zoom" },
+  { id: "meet-1", title: "App Project", time: "9:00 AM", provider: "Meet" },
+  { id: "meet-2", title: "User Research", time: "2:30 PM", provider: "Zoom" },
 ]
 
-/** Sprint-over-sprint trends (placeholder until API). */
-const sprintTrends = {
-  activeProjects: { delta: "+16.7%", direction: "up" as const },
-  totalTasks: { delta: "+11.4%", direction: "up" as const },
-  assignedToMe: { delta: "-8.3%", direction: "down" as const },
-  completedTasks: { delta: "+22.1%", direction: "up" as const },
-}
-
-function getDashboardKpiCounts() {
-  const activeProjects = projectsSeed.filter((p) => p.lifecycle === "active").length
-  let totalTasks = 0
-  let completedTasks = 0
-
-  for (const project of projectsSeed) {
-    const board = getBoardForProject(project)
-    totalTasks += board.tasks.length
-    completedTasks += board.tasks.filter((t) => t.column === "completed" || t.done).length
-  }
-
-  return {
-    activeProjects,
-    totalTasks,
-    completedTasks,
-    assignedToMe: myTasks.length,
-  }
-}
+const dashboardKpis = [
+  {
+    icon: FolderKanbanIcon,
+    title: "Active Projects",
+    value: "5",
+    context: "2 due this week",
+    href: "/projects?tab=active",
+  },
+  {
+    icon: ClipboardListIcon,
+    title: "In Progress",
+    value: "17",
+    context: "6 ahead of schedule",
+    href: "/projects?tab=active",
+  },
+  {
+    icon: UserCheckIcon,
+    title: "Assigned to Me",
+    value: "4",
+    context: "1 due today",
+    href: "/projects?sort=priority-desc",
+  },
+  {
+    icon: CalendarClockIcon,
+    title: "Needs Attention",
+    value: "3",
+    context: "down from 8 last sprint",
+    href: "/projects?sort=progress-asc",
+  },
+] as const
 
 function MeetingProviderMark({
   provider,
@@ -162,114 +180,78 @@ function KpiCard({
   icon: Icon,
   title,
   value,
-  delta,
-  deltaDirection,
+  context,
+  href,
 }: {
   icon: LucideIcon
   title: string
   value: string
-  delta: string
-  deltaDirection: "up" | "down"
+  context: string
+  href: string
 }) {
   return (
     <Card glass className="gap-0 py-0">
       <CardContent className="p-4">
-        <div className="mb-2 flex items-center gap-2.5">
-          <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/25 text-foreground backdrop-blur-sm">
-            <Icon className="size-4" strokeWidth={1.75} />
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/25 text-foreground backdrop-blur-sm">
+              <Icon className="size-4" strokeWidth={1.75} />
+            </div>
+            <span className="text-sm font-medium text-foreground">{title}</span>
           </div>
-          <span className="text-sm font-medium text-muted-foreground">{title}</span>
+          <Link
+            href={href}
+            aria-label={`Open ${title.toLowerCase()}`}
+            className={cn(
+              buttonVariants({
+                variant: "outline",
+                size: "icon-lg",
+                className:
+                  "size-9 shrink-0 rounded-full border-border bg-muted/50 text-foreground shadow-none hover:bg-muted",
+              })
+            )}
+          >
+            <ArrowUpRightIcon className="size-[18px]" strokeWidth={1.75} />
+          </Link>
         </div>
 
         <CardTitle className="text-3xl font-bold tracking-tight">{value}</CardTitle>
 
-        <div className="mt-2 text-sm text-muted-foreground">
-          <span
-            className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs font-medium"
-            style={{
-              backgroundColor:
-                deltaDirection === "up"
-                  ? "var(--kpi-delta-up)"
-                  : "var(--kpi-delta-down)",
-              color:
-                deltaDirection === "up"
-                  ? "var(--kpi-delta-up-foreground)"
-                  : "var(--kpi-delta-down-foreground)",
-            }}
-          >
-            {delta}
-          </span>{" "}
-          vs last sprint
-        </div>
+        <p className="mt-2 text-xs text-muted-foreground">{context}</p>
       </CardContent>
     </Card>
   )
 }
 
 export default function Home() {
-  const kpi = getDashboardKpiCounts()
-
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-5 py-8 px-16">
       {/* KPI row */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          icon={FolderKanbanIcon}
-          title="Active Projects"
-          value={String(kpi.activeProjects)}
-          delta={sprintTrends.activeProjects.delta}
-          deltaDirection={sprintTrends.activeProjects.direction}
-        />
-        <KpiCard
-          icon={ClipboardListIcon}
-          title="Total Tasks"
-          value={String(kpi.totalTasks)}
-          delta={sprintTrends.totalTasks.delta}
-          deltaDirection={sprintTrends.totalTasks.direction}
-        />
-        <KpiCard
-          icon={UserCheckIcon}
-          title="Assigned to Me"
-          value={String(kpi.assignedToMe)}
-          delta={sprintTrends.assignedToMe.delta}
-          deltaDirection={sprintTrends.assignedToMe.direction}
-        />
-        <KpiCard
-          icon={CheckCircleIcon}
-          title="Completed Tasks"
-          value={String(kpi.completedTasks)}
-          delta={sprintTrends.completedTasks.delta}
-          deltaDirection={sprintTrends.completedTasks.direction}
-        />
+        {dashboardKpis.map((kpi) => (
+          <KpiCard
+            key={kpi.title}
+            icon={kpi.icon}
+            title={kpi.title}
+            value={kpi.value}
+            context={kpi.context}
+            href={kpi.href}
+          />
+        ))}
       </div>
 
       {/* Dashboard grid (matches reference layout) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px] lg:items-stretch">
         {/* Row 1 / Col 1-2: equal-height chart cards */}
         <div className="grid min-h-0 grid-cols-1 gap-4 lg:col-span-2 lg:grid-cols-2 lg:items-stretch">
-          <Card className="h-full min-h-0">
-            <CardHeader className="px-7 pt-3">
-              <CardTitle className="text-lg font-semibold">Tasks by Status</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col px-7 pb-7">
-              <IssuesByStatusDonut />
-            </CardContent>
-          </Card>
+          <ProjectTimelineCard className="h-full min-h-0" />
 
-          <Card className="h-full min-h-0">
-            <CardHeader className="px-7 pt-3">
-              <CardTitle className="text-lg font-semibold">Activity Overview</CardTitle>
-              <CardDescription>Total tasks completed over time</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col px-7 pb-7">
-              <ActivityOverviewChart />
-            </CardContent>
-          </Card>
+          <ProjectsProgressCard className="h-full min-h-0" />
         </div>
 
         {/* Right rail: row 2-3 / col 3 */}
         <div className="flex min-h-0 flex-col gap-4 lg:col-start-3 lg:row-span-2 lg:row-start-1">
-          <Card>
+          <Card glass="subtle">
             <CardHeader className="px-7 pt-3">
               <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
                 My Meetings
@@ -291,7 +273,7 @@ export default function Home() {
                 </Link>
               </CardAction>
             </CardHeader>
-            <CardContent className="px-7 pb-7">
+            <CardContent className="px-7 pb-1">
               <div className="space-y-3">
                 {myMeetings.map((meeting) => (
                   <div
@@ -311,7 +293,7 @@ export default function Home() {
                       </button>
                     </div>
                     <div className="mt-3 flex items-center justify-between gap-3">
-                      <span className="text-xs font-bold text-foreground">{meeting.time}</span>
+                      <span className="text-xs font-normal text-foreground">{meeting.time}</span>
                       <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <MeetingProviderMark provider={meeting.provider} />
                         {meeting.provider}
@@ -337,35 +319,35 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card glass="subtle">
             <CardHeader className="px-7 pt-3">
               <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
-                Open Tickets
+                Open Issues
               </CardTitle>
               <CardAction>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon-lg"
-                  aria-label="Filter tickets"
+                  aria-label="Filter issues"
                   className="size-9 shrink-0 -translate-y-1 rounded-full border-border bg-muted/50 text-foreground shadow-none hover:bg-muted"
                 >
                   <ClaritySliderLineIcon className="size-[18px] text-foreground" />
                 </Button>
               </CardAction>
             </CardHeader>
-            <CardContent className="px-7 pb-7">
+            <CardContent className="px-7 pb-1">
               <div className="space-y-3">
-                {openTickets.map((ticket) => (
+                {openIssues.map((issue) => (
                   <div
-                    key={ticket.id}
+                    key={issue.id}
                     className="rounded-xl border border-foreground/10 bg-card px-4 py-3.5"
                   >
                     <div className="flex items-start gap-3">
                       <Avatar size="lg" className="shrink-0 bg-muted text-foreground after:border-foreground/10">
-                        <AvatarImage src={ticket.avatarUrl} alt="" />
+                        <AvatarImage src={issue.avatarUrl} alt="" />
                         <AvatarFallback className="bg-muted text-xs font-semibold">
-                          {ticket.assignee
+                          {issue.assignee
                             .split(" ")
                             .slice(0, 2)
                             .map((p) => p[0])
@@ -373,9 +355,9 @@ export default function Home() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-bold text-foreground">{ticket.assignee}</div>
+                        <div className="truncate text-sm font-bold text-foreground">{issue.assignee}</div>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {ticket.description}
+                          {issue.description}
                         </p>
                         <Button
                           type="button"
@@ -402,7 +384,7 @@ export default function Home() {
                   })
                 )}
               >
-                See all tickets
+                See all issues
                 <ChevronRightIcon className="size-4" />
               </Link>
             </CardContent>
@@ -410,15 +392,15 @@ export default function Home() {
         </div>
 
         {/* Row 3 / Col 1-2 */}
-        <Card className="lg:col-span-2 lg:col-start-1 lg:row-start-2">
+        <Card glass="subtle" className="lg:col-span-2 lg:col-start-1 lg:row-start-2">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3 px-7 pt-3 pb-1">
             <div className="min-w-0 space-y-1">
               <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
                 My Tasks
               </CardTitle>
               <CardDescription className="text-sm leading-snug text-muted-foreground">
-                {myTasks.filter((t) => t.status !== "done").length} open ·{" "}
-                {myTasks.filter((t) => t.status === "done").length} completed
+                {myTasks.filter((t) => t.status !== "completed").length} open ·{" "}
+                {myTasks.filter((t) => t.status === "completed").length} completed
               </CardDescription>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -451,7 +433,7 @@ export default function Home() {
           <CardContent className="px-7 pb-7">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {myTasks.map((task) => {
-                const isDone = task.status === "done"
+                const isDone = task.status === "completed"
                 return (
                   <div
                     key={task.id}
@@ -479,7 +461,7 @@ export default function Home() {
                           </div>
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             <IssueStatusBadge status={task.status} />
-                            <IssuePriorityBadge priority={task.priority} showBackground />
+                            <IssuePriorityBadge priority={task.priority} />
                           </div>
                         </div>
                         <span
@@ -488,7 +470,9 @@ export default function Home() {
                             isDone ? "border-transparent" : "border-border bg-background"
                           )}
                           style={
-                            isDone ? { backgroundColor: "var(--status-chart-done)" } : undefined
+                            isDone
+                              ? { backgroundColor: "var(--status-chart-completed)" }
+                              : undefined
                           }
                           role="img"
                           aria-label={isDone ? "Completed" : "Not completed"}

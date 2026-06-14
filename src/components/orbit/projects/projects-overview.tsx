@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import {
   CalendarIcon,
   CheckCheckIcon,
@@ -14,7 +15,6 @@ import {
 import {
   CategoryTokenBadge,
   IssuePriorityBadge,
-  type IssueStatus,
 } from "@/components/orbit/issues/issue-badges"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -37,57 +37,30 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { isProjectLifecycle } from "@/lib/status"
 import {
+  listProjects,
+  projectSortOptions,
   projectsSeed,
   type ProjectLifecycle,
+  type ProjectSort,
   type ProjectSummary,
   type ProjectType,
 } from "@/lib/projects-data"
 
-type ProjectSort = "name-asc" | "name-desc" | "progress-desc" | "progress-asc" | "priority-desc"
 
 const filterTabs: { value: "all" | ProjectLifecycle; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "active", label: "Active" },
   { value: "planning", label: "Planning" },
+  { value: "active", label: "Active" },
+  { value: "in_review", label: "In Review" },
   { value: "completed", label: "Completed" },
+  { value: "launched", label: "Launched" },
 ]
 
-const sortOptions: { value: ProjectSort; label: string }[] = [
-  { value: "name-asc", label: "Name (A–Z)" },
-  { value: "name-desc", label: "Name (Z–A)" },
-  { value: "progress-desc", label: "Progress (high to low)" },
-  { value: "progress-asc", label: "Progress (low to high)" },
-  { value: "priority-desc", label: "Priority (high first)" },
-]
-
-const priorityOrder = { high: 0, medium: 1, low: 2 } as const
-
-function sortProjects(projects: ProjectSummary[], sort: ProjectSort): ProjectSummary[] {
-  const list = [...projects]
-  switch (sort) {
-    case "name-asc":
-      return list.sort((a, b) => a.title.localeCompare(b.title))
-    case "name-desc":
-      return list.sort((a, b) => b.title.localeCompare(a.title))
-    case "progress-desc":
-      return list.sort((a, b) => b.progress - a.progress)
-    case "progress-asc":
-      return list.sort((a, b) => a.progress - b.progress)
-    case "priority-desc":
-      return list.sort(
-        (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
-      )
-  }
-}
+const sortOptions = projectSortOptions
 
 const metaClass = "text-[13px] text-[#9aa3b2]"
-
-const projectTypeStatus: Record<ProjectType, IssueStatus> = {
-  development: "in_review",
-  design: "in_progress",
-  documentation: "done",
-}
 
 function typeLabel(type: ProjectType): string {
   switch (type) {
@@ -118,7 +91,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
         "focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       )}
     >
-      <Card className="h-full gap-0 rounded-xl border border-border/50 bg-card py-0 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow] group-hover:border-border/80 group-hover:shadow-[0_4px_12px_rgba(15,23,42,0.08)]">
+      <Card glass="subtle" className="h-full gap-0 py-0">
         <CardHeader className="gap-2.5 px-4 pt-4 pb-0">
           <CardTitle className="text-lg font-semibold leading-snug tracking-tight text-foreground">
             {project.title}
@@ -131,17 +104,14 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
         <CardContent className="space-y-3.5 px-4 pt-3 pb-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <CategoryTokenBadge
-                label={typeLabel(project.type)}
-                status={projectTypeStatus[project.type]}
-              />
-              <IssuePriorityBadge priority={project.priority} showBackground />
+              <CategoryTokenBadge label={typeLabel(project.type)} />
+              <IssuePriorityBadge priority={project.priority} />
             </div>
             <div className="flex shrink-0 -space-x-2">
               {project.team.map((member) => (
                 <Avatar
                   key={member.id}
-                  className="size-9 border-2 border-card ring-0"
+                  className="size-9 border-2 border-background ring-0"
                   title={member.name}
                 >
                   <AvatarImage src={member.avatarUrl} alt="" />
@@ -167,7 +137,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
 
         <CardFooter
           className={cn(
-            "gap-3 border-t border-[#e8ebf0] bg-card px-4 py-3",
+            "gap-3 border-t border-foreground/10 bg-transparent px-4 py-3",
             metaClass
           )}
         >
@@ -180,11 +150,15 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
             <span className="tabular-nums">{project.attachments}</span>
           </span>
           {project.lifecycle === "completed" ? (
-            <span className="ml-auto inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="ml-auto inline-flex items-center gap-1.5 font-medium text-[var(--status-completed-foreground)]">
               <CheckCheckIcon className="size-3.5 shrink-0" strokeWidth={2.25} />
-              <span className="line-through decoration-emerald-600/70 dark:decoration-emerald-400/70">
+              <span className="line-through decoration-[var(--status-completed-foreground)]/70">
                 {project.dueLabel}
               </span>
+            </span>
+          ) : project.lifecycle === "launched" ? (
+            <span className="ml-auto font-medium text-[var(--status-launched-foreground)]">
+              {project.dueLabel}
             </span>
           ) : (
             <span className="ml-auto inline-flex items-center gap-1.5">
@@ -222,71 +196,84 @@ function ProjectGrid({
   )
 }
 
+const projectSortValues = new Set<ProjectSort>(projectSortOptions.map((o) => o.value))
+
 export function ProjectsOverview() {
+  const searchParams = useSearchParams()
   const [tab, setTab] = React.useState<"all" | ProjectLifecycle>("all")
   const [search, setSearch] = React.useState("")
   const [sort, setSort] = React.useState<ProjectSort>("name-asc")
 
-  const tabCounts = React.useMemo(
-    () => ({
-      all: projectsSeed.length,
-      active: projectsSeed.filter((p) => p.lifecycle === "active").length,
-      planning: projectsSeed.filter((p) => p.lifecycle === "planning").length,
-      completed: projectsSeed.filter((p) => p.lifecycle === "completed").length,
-    }),
-    []
-  )
-
-  const filteredProjects = React.useMemo(() => {
-    const query = search.trim().toLowerCase()
-    let list =
-      tab === "all" ? projectsSeed : projectsSeed.filter((p) => p.lifecycle === tab)
-
-    if (query) {
-      list = list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query)
-      )
+  React.useEffect(() => {
+    const tabParam = searchParams.get("tab")
+    if (tabParam === "all") {
+      setTab("all")
+    } else if (tabParam && isProjectLifecycle(tabParam)) {
+      setTab(tabParam)
     }
 
-    return sortProjects(list, sort)
-  }, [tab, search, sort])
+    const sortParam = searchParams.get("sort")
+    if (sortParam && projectSortValues.has(sortParam as ProjectSort)) {
+      setSort(sortParam as ProjectSort)
+    }
+  }, [searchParams])
+
+  const tabCounts = React.useMemo(() => {
+    const counts: Record<"all" | ProjectLifecycle, number> = {
+      all: projectsSeed.length,
+      planning: 0,
+      active: 0,
+      in_review: 0,
+      completed: 0,
+      launched: 0,
+    }
+    for (const project of projectsSeed) {
+      counts[project.lifecycle] += 1
+    }
+    return counts
+  }, [])
+
+  const filteredProjects = React.useMemo(
+    () =>
+      listProjects({
+        lifecycle: tab,
+        sort,
+        search,
+      }),
+    [tab, search, sort]
+  )
 
   const sortLabel = sortOptions.find((o) => o.value === sort)?.label ?? "Sort"
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-8 px-6 py-8 md:px-10 lg:px-16">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-[1.75rem]">
-          Projects
-        </h1>
-        <Button type="button" className="h-9 shrink-0 gap-1.5 self-start px-4 sm:self-auto">
-          <PlusIcon className="size-4" strokeWidth={2} />
-          New Project
-        </Button>
-      </div>
-
       <Tabs
         value={tab}
         onValueChange={(v) => {
-          if (v === "all" || v === "active" || v === "planning" || v === "completed") {
+          if (v === "all" || isProjectLifecycle(v)) {
             setTab(v)
           }
         }}
         className="gap-8"
       >
-        <TabsList className="inline-flex h-auto w-fit gap-0.5 rounded-lg border border-border/50 bg-muted/50 p-1 shadow-none">
-          {filterTabs.map((t) => (
-            <TabsTrigger
-              key={t.value}
-              value={t.value}
-              className="rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors data-active:border data-active:border-border/60 data-active:bg-card data-active:text-foreground data-active:shadow-sm"
-            >
-              {t.label} ({tabCounts[t.value]})
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList className="inline-flex h-auto w-fit gap-0.5 rounded-lg border border-border/50 bg-muted/50 p-1 shadow-none">
+            {filterTabs.map((t) => (
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors data-active:border data-active:border-border/60 data-active:bg-card data-active:text-foreground data-active:shadow-sm"
+              >
+                {t.label} ({tabCounts[t.value]})
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <Button type="button" className="h-9 shrink-0 gap-1.5 px-4">
+            <PlusIcon className="size-4" strokeWidth={2} />
+            New Project
+          </Button>
+        </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1 sm:max-w-md">

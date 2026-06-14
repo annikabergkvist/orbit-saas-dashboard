@@ -2,152 +2,232 @@
 
 import * as React from "react"
 import {
-  Area,
-  AreaChart,
+  CalendarIcon,
+  FolderIcon,
+  PieChartIcon,
+  SettingsIcon,
+  UserIcon,
+} from "lucide-react"
+import {
   CartesianGrid,
+  LabelList,
+  Line,
+  LineChart,
+  ReferenceArea,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts"
 
-type Point = { month: string; created: number; completed: number }
+import { cn } from "@/lib/utils"
 
-// Demo data that matches the shape of the Figma reference. We'll replace this
-// with real analytics later (API → server component → pass into the chart).
+type Point = { day: string; created: number; completed: number }
+
+const HIGHLIGHT_DAY = "Fri"
+
 const data: Point[] = [
-  { month: "Jan", created: 72, completed: 28 },
-  { month: "Feb", created: 88, completed: 24 },
-  { month: "Mar", created: 88, completed: 23 },
-  { month: "Apr", created: 110, completed: 38 },
-  { month: "May", created: 108, completed: 42 },
-  { month: "Jun", created: 90, completed: 42 },
-  { month: "Jul", created: 91, completed: 41 },
-  { month: "Aug", created: 90, completed: 25 },
-  { month: "Sep", created: 55, completed: 19 },
-  { month: "Oct", created: 48, completed: 19 },
-  { month: "Nov", created: 92, completed: 36 },
+  { day: "Mon", created: 168, completed: 42 },
+  { day: "Tue", created: 214, completed: 51 },
+  { day: "Wed", created: 192, completed: 47 },
+  { day: "Thu", created: 258, completed: 58 },
+  { day: "Fri", created: 344, completed: 89 },
+  { day: "Sat", created: 206, completed: 61 },
+  { day: "Sun", created: 172, completed: 44 },
 ]
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat(undefined).format(value)
+const bottomNav = [
+  { icon: PieChartIcon, label: "Overview", active: true },
+  { icon: CalendarIcon, label: "Calendar", active: false },
+  { icon: FolderIcon, label: "Projects", active: false },
+  { icon: UserIcon, label: "Team", active: false },
+  { icon: SettingsIcon, label: "Settings", active: false },
+] as const
+
+function LegendRing({ color }: { color: string }) {
+  return (
+    <span
+      className="inline-block size-2.5 shrink-0 rounded-full border-[1.5px] bg-transparent"
+      style={{ borderColor: color }}
+      aria-hidden="true"
+    />
+  )
+}
+
+function HighlightLabel({
+  x,
+  y,
+  value,
+  payload,
+  dataKey,
+}: {
+  x?: number
+  y?: number
+  value?: string | number
+  payload?: Point
+  dataKey?: string
+}) {
+  if (payload?.day !== HIGHLIGHT_DAY || x == null || y == null || value == null) {
+    return null
+  }
+
+  const isCreated = dataKey === "created"
+  const color = isCreated ? "var(--activity-created)" : "var(--activity-completed)"
+
+  return (
+    <text
+      x={x}
+      y={y + (isCreated ? -12 : 20)}
+      textAnchor="middle"
+      fill={color}
+      style={{ fontSize: 13, fontWeight: 700 }}
+    >
+      {value}
+    </text>
+  )
+}
+
+function HighlightDot({
+  cx,
+  cy,
+  payload,
+  stroke,
+}: {
+  cx?: number
+  cy?: number
+  payload?: Point
+  stroke: string
+}) {
+  if (payload?.day !== HIGHLIGHT_DAY || cx == null || cy == null) {
+    return null
+  }
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={4}
+      fill="rgb(255 255 255 / 0.95)"
+      stroke={stroke}
+      strokeWidth={2}
+    />
+  )
 }
 
 export function ActivityOverviewChart() {
-  const gradientId = React.useId()
-  const createdGradientId = `${gradientId}-created`
-  const completedGradientId = `${gradientId}-completed`
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
-    // Recharts' ResponsiveContainer relies on layout measurement APIs that don't
-    // exist during static prerender. Rendering after mount avoids noisy warnings.
     const id = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(id)
   }, [])
 
   return (
-    <div className="relative h-[240px] w-full">
-      {!mounted ? (
-        <div className="h-full w-full rounded-lg bg-muted/40" />
-      ) : (
-        <>
-          {/* Legend (top-right) */}
-          <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <span
-                className="size-2.5 rounded-full"
-                style={{ backgroundColor: "var(--activity-created)" }}
-                aria-hidden="true"
-              />
-              <span>Tasks Created</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span
-                className="size-2.5 rounded-full"
-                style={{ backgroundColor: "var(--activity-completed)" }}
-                aria-hidden="true"
-              />
-              <span>Tasks Completed</span>
-            </div>
-          </div>
+    <div className="flex w-full flex-col">
+      <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <LegendRing color="var(--activity-created)" />
+          <span>Tasks Created</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <LegendRing color="var(--activity-completed)" />
+          <span>Tasks Completed</span>
+        </div>
+      </div>
 
-          {/* ResponsiveContainer makes Recharts scale with the parent card. */}
+      <div className="relative h-[210px] w-full">
+        {!mounted ? (
+          <div className="h-full w-full rounded-lg bg-muted/30" />
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ left: 8, right: 8, top: 8, bottom: 0 }}>
-              <defs>
-                <linearGradient id={createdGradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--activity-created)" stopOpacity={0.14} />
-                  <stop offset="95%" stopColor="var(--activity-created)" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id={completedGradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--activity-completed)" stopOpacity={0.12} />
-                  <stop offset="95%" stopColor="var(--activity-completed)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              {/* Light, solid horizontal grid lines (no vertical lines). */}
+            <LineChart data={data} margin={{ left: 0, right: 4, top: 18, bottom: 0 }}>
               <CartesianGrid
                 stroke="var(--chart-grid)"
                 strokeDasharray="0"
                 vertical={false}
               />
+              <ReferenceArea
+                x1="Thu"
+                x2="Sat"
+                fill="var(--activity-highlight)"
+                fillOpacity={1}
+                strokeOpacity={0}
+                ifOverflow="extendDomain"
+              />
               <XAxis
-                dataKey="month"
+                dataKey="day"
                 tickLine={false}
                 axisLine={false}
-                fontSize={12}
+                fontSize={11}
                 tick={{ fill: "var(--muted-foreground)" }}
+                dy={6}
               />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                fontSize={12}
-                tick={{ fill: "var(--muted-foreground)" }}
-                tickFormatter={(value) => (value === 150 ? "" : formatNumber(value))}
-                ticks={[0, 40, 80, 120]}
-                width={34}
-                domain={[0, 150]}
-              />
-              <Tooltip
-                cursor={{ stroke: "var(--border)", strokeDasharray: "4 4" }}
-                contentStyle={{
-                  background: "var(--popover)",
-                  border: "1px solid var(--border)",
-                  color: "var(--popover-foreground)",
-                  borderRadius: "var(--radius)",
-                }}
-                labelStyle={{ color: "var(--muted-foreground)" }}
-                formatter={(value, name) => [formatNumber(Number(value)), String(name)]}
-              />
-              <Area
-                type="monotone"
+              <YAxis hide domain={[0, 400]} />
+              <Line
+                type="natural"
                 dataKey="created"
                 name="Tasks Created"
                 stroke="var(--activity-created)"
-                strokeWidth={2}
-                fill={`url(#${createdGradientId})`}
-                dot={false}
-                activeDot={{ r: 4, stroke: "var(--activity-created)", fill: "var(--background)" }}
-              />
-              <Area
-                type="monotone"
+                strokeWidth={2.75}
+                dot={(props) => (
+                  <HighlightDot
+                    key={props.key}
+                    cx={props.cx}
+                    cy={props.cy}
+                    payload={props.payload as Point}
+                    stroke="var(--activity-created)"
+                  />
+                )}
+                activeDot={false}
+                isAnimationActive={false}
+              >
+                <LabelList dataKey="created" content={<HighlightLabel dataKey="created" />} />
+              </Line>
+              <Line
+                type="natural"
                 dataKey="completed"
                 name="Tasks Completed"
                 stroke="var(--activity-completed)"
-                strokeWidth={2}
-                fill={`url(#${completedGradientId})`}
-                dot={false}
-                activeDot={{
-                  r: 4,
-                  stroke: "var(--activity-completed)",
-                  fill: "var(--background)",
-                }}
-              />
-            </AreaChart>
+                strokeWidth={1.75}
+                dot={(props) => (
+                  <HighlightDot
+                    key={props.key}
+                    cx={props.cx}
+                    cy={props.cy}
+                    payload={props.payload as Point}
+                    stroke="var(--activity-completed)"
+                  />
+                )}
+                activeDot={false}
+                isAnimationActive={false}
+              >
+                <LabelList
+                  dataKey="completed"
+                  content={<HighlightLabel dataKey="completed" />}
+                />
+              </Line>
+            </LineChart>
           </ResponsiveContainer>
-        </>
-      )}
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-foreground/8 pt-3">
+        {bottomNav.map(({ icon: Icon, label, active }) => (
+          <button
+            key={label}
+            type="button"
+            aria-label={label}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "inline-flex size-9 items-center justify-center rounded-lg transition-colors",
+              active
+                ? "text-[var(--activity-created)]"
+                : "text-muted-foreground/70 hover:bg-muted/40 hover:text-muted-foreground"
+            )}
+          >
+            <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.75} />
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
-

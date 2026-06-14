@@ -3,33 +3,67 @@
 import * as React from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
-type StatusKey = "todo" | "in_progress" | "in_review" | "done"
+import type { IssueStatus } from "@/lib/status"
 
 type Slice = {
-  key: StatusKey
+  key: IssueStatus
   label: string
   value: number
   color: string
 }
 
+/** Status → chart segment CSS tokens (no default Recharts palette). */
+const statusColors: Record<IssueStatus, string> = {
+  todo: "var(--status-chart-todo)",
+  in_progress: "var(--status-chart-in-progress)",
+  in_review: "var(--status-chart-in-review)",
+  completed: "var(--status-chart-completed)",
+  overdue: "var(--status-chart-overdue)",
+}
+
 // Fixed demo data to match the reference screenshot.
 const slices: Slice[] = [
-  { key: "todo", label: "To Do", value: 12, color: "var(--status-chart-todo)" },
+  { key: "todo", label: "To Do", value: 12, color: statusColors.todo },
   {
     key: "in_progress",
     label: "In Progress",
     value: 8,
-    color: "var(--status-chart-in-progress)",
+    color: statusColors.in_progress,
   },
-  { key: "done", label: "Completed", value: 15, color: "var(--status-chart-done)" },
+  {
+    key: "in_review",
+    label: "In Review",
+    value: 5,
+    color: statusColors.in_review,
+  },
+  {
+    key: "completed",
+    label: "Completed",
+    value: 15,
+    color: statusColors.completed,
+  },
+  { key: "overdue", label: "Overdue", value: 3, color: statusColors.overdue },
 ]
+
+function LegendDot({ color }: { color: string }) {
+  return (
+    <span
+      className="size-3.5 shrink-0 rounded-full"
+      style={{ backgroundColor: color }}
+      aria-hidden="true"
+    />
+  )
+}
 
 export function IssuesByStatusDonut() {
   const [mounted, setMounted] = React.useState(false)
 
   const total = React.useMemo(() => slices.reduce((sum, s) => sum + s.value, 0), [])
-  const done = React.useMemo(() => slices.find((s) => s.key === "done")?.value ?? 0, [])
-  const donePct = total > 0 ? Math.round((done / total) * 100) : 0
+  const completed = React.useMemo(
+    () => slices.find((s) => s.key === "completed")?.value ?? 0,
+    []
+  )
+  const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   React.useEffect(() => {
     // Avoid ResponsiveContainer warnings during static prerender.
@@ -37,8 +71,11 @@ export function IssuesByStatusDonut() {
     return () => cancelAnimationFrame(id)
   }, [])
 
-  const todo = slices.find((s) => s.key === "todo")?.value ?? 0
-  const inProgress = slices.find((s) => s.key === "in_progress")?.value ?? 0
+  const legendRows = [
+    slices.filter((s) => s.key === "in_progress" || s.key === "completed"),
+    slices.filter((s) => s.key === "in_review" || s.key === "todo"),
+    slices.filter((s) => s.key === "overdue"),
+  ]
 
   return (
     <div className="w-full">
@@ -67,26 +104,23 @@ export function IssuesByStatusDonut() {
                 paddingAngle={2}
                 stroke="var(--card)"
                 strokeWidth={3}
+                fill="none"
+                isAnimationActive={false}
               >
                 {slices.map((slice) => (
-                  <Cell key={slice.key} fill={slice.color} />
+                  <Cell key={slice.key} fill={slice.color} stroke={slice.color} />
                 ))}
               </Pie>
 
               {/* Center label (percentage + status) */}
-              <text
-                x="50%"
-                y="50%"
-                textAnchor="middle"
-                dominantBaseline="middle"
-              >
+              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
                 <tspan
                   x="50%"
                   dy="-2"
                   fill="var(--foreground)"
                   style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.02em" }}
                 >
-                  {donePct}%
+                  {completedPct}%
                 </tspan>
                 <tspan
                   x="50%"
@@ -94,7 +128,7 @@ export function IssuesByStatusDonut() {
                   fill="var(--muted-foreground)"
                   style={{ fontSize: 14, fontWeight: 600 }}
                 >
-                  done
+                  completed
                 </tspan>
               </text>
             </PieChart>
@@ -102,36 +136,24 @@ export function IssuesByStatusDonut() {
         )}
       </div>
 
-      {/* Legend (below chart) */}
-      <div className="mt-5 text-sm text-muted-foreground">
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-          <div className="flex items-center gap-2.5">
-            <span
-              className="size-3.5 rounded-full"
-              style={{ backgroundColor: "var(--status-chart-in-progress)" }}
-              aria-hidden="true"
-            />
-            <span>In Progress: {inProgress}</span>
+      {/* Legend (below chart) — dots use the same segment colors as the chart */}
+      <div className="mt-5 space-y-2 text-sm text-muted-foreground">
+        {legendRows.map((row, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
+          >
+            {row.map((slice) => (
+              <div key={slice.key} className="flex items-center gap-2.5">
+                <LegendDot color={slice.color} />
+                <span>
+                  {slice.label}: {slice.value}
+                </span>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center gap-2.5">
-            <span
-              className="size-3.5 rounded-full"
-              style={{ backgroundColor: "var(--status-chart-done)" }}
-              aria-hidden="true"
-            />
-            <span>Completed: {done}</span>
-          </div>
-        </div>
-        <div className="mt-2 flex items-center justify-center gap-2.5">
-          <span
-            className="size-3.5 rounded-full"
-            style={{ backgroundColor: "var(--status-chart-todo)" }}
-            aria-hidden="true"
-          />
-          <span>To Do: {todo}</span>
-        </div>
+        ))}
       </div>
     </div>
   )
 }
-

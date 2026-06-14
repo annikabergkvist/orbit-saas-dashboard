@@ -19,6 +19,10 @@ import {
   issueStatusStripBackground,
 } from "@/components/orbit/issues/issue-badges"
 import { IssueDetailPanel } from "@/components/orbit/issues/issue-detail-panel"
+import {
+  NewIssueDialog,
+  type NewIssueValues,
+} from "@/components/orbit/issues/new-issue-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,6 +46,7 @@ import {
   issueAssignees,
   issueProjects,
   issuesSeed,
+  nextIssueId,
   sortIssues,
   type Issue,
   type IssuePriority,
@@ -375,6 +380,7 @@ export function IssuesView() {
   const searchParams = useSearchParams()
   const [issues, setIssues] = React.useState<Issue[]>(issuesSeed)
   const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(null)
+  const [newIssueOpen, setNewIssueOpen] = React.useState(false)
   const [tab, setTab] = React.useState<IssueTab>("all")
   const [filters, setFilters] = React.useState<Filters>(emptyFilters)
   const [sortKey, setSortKey] = React.useState<IssueSortKey>("priority")
@@ -481,6 +487,17 @@ export function IssuesView() {
     )
   }, [])
 
+  const createIssue = React.useCallback(
+    (values: NewIssueValues) => {
+      const id = nextIssueId(issues)
+      const issue: Issue = { id, comments: [], ...values }
+      setIssues((prev) => [issue, ...prev])
+      setNewIssueOpen(false)
+      setSelectedIssueId(id)
+    },
+    [issues]
+  )
+
   const activeAssignee = filters.assigneeId ? getAssignee(filters.assigneeId) : undefined
 
   // Keep the last opened issue around during the panel's close animation.
@@ -511,7 +528,11 @@ export function IssuesView() {
             ))}
           </TabsList>
 
-          <Button type="button" className="h-9 shrink-0 gap-1.5 px-4">
+          <Button
+            type="button"
+            onClick={() => setNewIssueOpen(true)}
+            className="h-9 shrink-0 gap-1.5 px-4"
+          >
             <PlusIcon className="size-4" strokeWidth={2} />
             New Issue
           </Button>
@@ -666,6 +687,12 @@ export function IssuesView() {
         onAddComment={(body) => {
           if (selectedIssueId) addComment(selectedIssueId, body)
         }}
+      />
+
+      <NewIssueDialog
+        open={newIssueOpen}
+        onOpenChange={setNewIssueOpen}
+        onCreate={createIssue}
       />
     </div>
   )

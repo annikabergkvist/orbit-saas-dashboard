@@ -6,8 +6,10 @@ import {
   ArrowDownWideNarrowIcon,
   ArrowUpNarrowWideIcon,
   CalendarIcon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  MinusIcon,
   PlusIcon,
   SearchIcon,
   XIcon,
@@ -18,6 +20,7 @@ import {
   IssueStatusBadge,
   issueStatusStripBackground,
 } from "@/components/orbit/issues/issue-badges"
+import { BulkActionBar } from "@/components/orbit/issues/bulk-action-bar"
 import { IssueDetailPanel } from "@/components/orbit/issues/issue-detail-panel"
 import {
   NewIssueDialog,
@@ -56,7 +59,7 @@ import {
   type SortDir,
 } from "@/lib/issues-data"
 
-const metaClass = "text-[13px] text-[#9aa3b2]"
+const metaClass = "text-[13px] text-muted-foreground"
 const ANY = "__any__"
 
 const tabs: { value: IssueTab; label: string }[] = [
@@ -90,8 +93,6 @@ const statusLabel = (value: IssueStatusFilter) =>
   statusOptions.find((o) => o.value === value)?.label ?? value
 const priorityLabel = (value: IssuePriority) =>
   priorityOptions.find((o) => o.value === value)?.label ?? value
-const sortLabel = (value: IssueSortKey) =>
-  sortOptions.find((o) => o.value === value)?.label ?? value
 
 type Filters = {
   search: string
@@ -123,11 +124,14 @@ function FilterMenu({
   value,
   options,
   onChange,
+  allowClear = true,
 }: {
   label: string
   value: string | null
   options: { value: string; label: string }[]
   onChange: (value: string | null) => void
+  /** When false, the menu has no "Any" reset item and always keeps a value (e.g. Sort). */
+  allowClear?: boolean
 }) {
   const current = options.find((o) => o.value === value)
   return (
@@ -139,7 +143,7 @@ function FilterMenu({
             variant="outline"
             className={cn(
               "h-9 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none",
-              current && "border-primary/40 text-foreground"
+              allowClear && current && "border-primary/40 text-foreground"
             )}
           >
             <span className="text-muted-foreground">{label}:</span>
@@ -153,7 +157,9 @@ function FilterMenu({
           value={value ?? ANY}
           onValueChange={(v) => onChange(v === ANY ? null : v)}
         >
-          <DropdownMenuRadioItem value={ANY}>Any {label.toLowerCase()}</DropdownMenuRadioItem>
+          {allowClear ? (
+            <DropdownMenuRadioItem value={ANY}>Any {label.toLowerCase()}</DropdownMenuRadioItem>
+          ) : null}
           {options.map((o) => (
             <DropdownMenuRadioItem key={o.value} value={o.value}>
               {o.label}
@@ -241,14 +247,56 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
   )
 }
 
+function SelectBox({
+  checked,
+  indeterminate = false,
+  onToggle,
+  label,
+}: {
+  checked: boolean
+  indeterminate?: boolean
+  onToggle: () => void
+  label: string
+}) {
+  const active = checked || indeterminate
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={indeterminate ? "mixed" : checked}
+      aria-label={label}
+      onClick={(e) => {
+        e.stopPropagation()
+        onToggle()
+      }}
+      className={cn(
+        "flex size-4 shrink-0 items-center justify-center rounded-[5px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-foreground/30 bg-card hover:border-foreground/50"
+      )}
+    >
+      {indeterminate ? (
+        <MinusIcon className="size-3" strokeWidth={3} />
+      ) : checked ? (
+        <CheckIcon className="size-3" strokeWidth={3} />
+      ) : null}
+    </button>
+  )
+}
+
 function IssueRow({
   issue,
   selected,
   onSelect,
+  checked,
+  onToggleChecked,
 }: {
   issue: Issue
   selected: boolean
   onSelect: () => void
+  checked: boolean
+  onToggleChecked: () => void
 }) {
   const overdue = isIssueOverdue(issue)
   const assignee = getAssignee(issue.assigneeId)
@@ -259,15 +307,16 @@ function IssueRow({
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
           e.preventDefault()
           onSelect()
         }
       }}
       aria-pressed={selected}
       className={cn(
-        "flex cursor-pointer overflow-hidden rounded-xl border bg-card transition-colors hover:bg-muted/30",
+        "flex cursor-pointer overflow-hidden rounded-xl border transition-colors hover:bg-muted/30",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        checked ? "bg-primary/5" : "bg-card",
         selected ? "border-primary/50 ring-1 ring-primary/30" : "border-foreground/10"
       )}
     >
@@ -277,6 +326,11 @@ function IssueRow({
         aria-hidden
       />
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+        <SelectBox
+          checked={checked}
+          onToggle={onToggleChecked}
+          label={checked ? `Deselect ${issue.id}` : `Select ${issue.id}`}
+        />
         <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
           {issue.id}
         </span>
@@ -331,6 +385,9 @@ function StatusGroup({
   onToggle,
   selectedId,
   onSelectIssue,
+  checkedIds,
+  onToggleChecked,
+  onToggleGroupChecked,
 }: {
   status: WorkItemStatus
   issues: Issue[]
@@ -338,27 +395,50 @@ function StatusGroup({
   onToggle: () => void
   selectedId: string | null
   onSelectIssue: (id: string) => void
+  checkedIds: Set<string>
+  onToggleChecked: (id: string) => void
+  onToggleGroupChecked: (ids: string[], select: boolean) => void
 }) {
+  const checkedCount = issues.reduce(
+    (acc, issue) => acc + (checkedIds.has(issue.id) ? 1 : 0),
+    0
+  )
+  const allChecked = checkedCount === issues.length && issues.length > 0
+  const someChecked = checkedCount > 0 && !allChecked
+
   return (
     <section className="flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={!collapsed}
-        className="flex w-fit items-center gap-2 rounded-md py-1 pr-2 text-left transition-colors hover:opacity-80"
-      >
-        <ChevronRightIcon
-          className={cn(
-            "size-4 shrink-0 text-muted-foreground transition-transform",
-            !collapsed && "rotate-90"
-          )}
-          strokeWidth={2}
+      <div className="flex w-fit items-center gap-2">
+        <SelectBox
+          checked={allChecked}
+          indeterminate={someChecked}
+          onToggle={() =>
+            onToggleGroupChecked(
+              issues.map((i) => i.id),
+              !allChecked
+            )
+          }
+          label={allChecked ? "Deselect group" : "Select all in group"}
         />
-        <IssueStatusBadge status={status} />
-        <span className="text-sm font-medium tabular-nums text-muted-foreground">
-          {issues.length}
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          className="flex items-center gap-2 rounded-md py-1 pr-2 text-left transition-colors hover:opacity-80"
+        >
+          <ChevronRightIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform",
+              !collapsed && "rotate-90"
+            )}
+            strokeWidth={2}
+          />
+          <IssueStatusBadge status={status} />
+          <span className="text-sm font-medium tabular-nums text-muted-foreground">
+            {issues.length}
+          </span>
+        </button>
+      </div>
 
       {collapsed ? null : (
         <div className="flex flex-col gap-2">
@@ -368,6 +448,8 @@ function StatusGroup({
               issue={issue}
               selected={issue.id === selectedId}
               onSelect={() => onSelectIssue(issue.id)}
+              checked={checkedIds.has(issue.id)}
+              onToggleChecked={() => onToggleChecked(issue.id)}
             />
           ))}
         </div>
@@ -381,6 +463,7 @@ export function IssuesView() {
   const [issues, setIssues] = React.useState<Issue[]>(issuesSeed)
   const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(null)
   const [newIssueOpen, setNewIssueOpen] = React.useState(false)
+  const [checkedIds, setCheckedIds] = React.useState<Set<string>>(new Set())
   const [tab, setTab] = React.useState<IssueTab>("all")
   const [filters, setFilters] = React.useState<Filters>(emptyFilters)
   const [sortKey, setSortKey] = React.useState<IssueSortKey>("priority")
@@ -443,6 +526,34 @@ export function IssuesView() {
       .filter((group) => group.issues.length > 0)
   }, [issues, tab, filters, sortKey, sortDir])
 
+  const visibleIds = React.useMemo(
+    () => new Set(groups.flatMap((g) => g.issues.map((i) => i.id))),
+    [groups]
+  )
+
+  // Effective selection = only issues currently visible. Derived at render time
+  // so the bulk bar count, checkboxes, and bulk actions never act on hidden rows.
+  const checkedVisible = React.useMemo(() => {
+    if (checkedIds.size === 0) return checkedIds
+    const next = new Set<string>()
+    for (const id of checkedIds) if (visibleIds.has(id)) next.add(id)
+    return next
+  }, [checkedIds, visibleIds])
+
+  // Garbage-collect ids hidden by the current tab/filters so they don't linger.
+  React.useEffect(() => {
+    setCheckedIds((prev) => {
+      if (prev.size === 0) return prev
+      let changed = false
+      const next = new Set<string>()
+      for (const id of prev) {
+        if (visibleIds.has(id)) next.add(id)
+        else changed = true
+      }
+      return changed ? next : prev
+    })
+  }, [visibleIds])
+
   const hasActiveFilters =
     filters.search.trim() !== "" ||
     filters.status !== null ||
@@ -493,10 +604,47 @@ export function IssuesView() {
       const issue: Issue = { id, comments: [], ...values }
       setIssues((prev) => [issue, ...prev])
       setNewIssueOpen(false)
+      // Reset the view so the new issue is actually visible in the list.
+      setTab("all")
+      setFilters(emptyFilters)
       setSelectedIssueId(id)
     },
     [issues]
   )
+
+  const toggleChecked = React.useCallback((id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const toggleGroupChecked = React.useCallback((ids: string[], select: boolean) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev)
+      for (const id of ids) {
+        if (select) next.add(id)
+        else next.delete(id)
+      }
+      return next
+    })
+  }, [])
+
+  const clearSelection = React.useCallback(() => setCheckedIds(new Set()), [])
+
+  const bulkPatch = (patch: Partial<Issue>) => {
+    setIssues((prev) =>
+      prev.map((i) => (checkedVisible.has(i.id) ? { ...i, ...patch } : i))
+    )
+  }
+
+  const bulkDelete = () => {
+    setIssues((prev) => prev.filter((i) => !checkedVisible.has(i.id)))
+    if (selectedIssueId && checkedVisible.has(selectedIssueId)) setSelectedIssueId(null)
+    setCheckedIds(new Set())
+  }
 
   const activeAssignee = filters.assigneeId ? getAssignee(filters.assigneeId) : undefined
 
@@ -586,6 +734,7 @@ export function IssuesView() {
               label="Sort"
               value={sortKey}
               options={sortOptions}
+              allowClear={false}
               onChange={(v) => {
                 if (v) setSortKey(v as IssueSortKey)
               }}
@@ -672,6 +821,9 @@ export function IssuesView() {
               onToggle={() => toggleGroup(group.status)}
               selectedId={selectedIssueId}
               onSelectIssue={setSelectedIssueId}
+              checkedIds={checkedVisible}
+              onToggleChecked={toggleChecked}
+              onToggleGroupChecked={toggleGroupChecked}
             />
           ))}
         </div>
@@ -694,6 +846,17 @@ export function IssuesView() {
         onOpenChange={setNewIssueOpen}
         onCreate={createIssue}
       />
+
+      {checkedVisible.size > 0 ? (
+        <BulkActionBar
+          count={checkedVisible.size}
+          onClear={clearSelection}
+          onSetStatus={(status) => bulkPatch({ status })}
+          onSetPriority={(priority) => bulkPatch({ priority })}
+          onSetAssignee={(assigneeId) => bulkPatch({ assigneeId })}
+          onDelete={bulkDelete}
+        />
+      ) : null}
     </div>
   )
 }

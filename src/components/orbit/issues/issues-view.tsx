@@ -398,7 +398,6 @@ function StatusGroup({
   checkedIds,
   onToggleChecked,
   onToggleGroupChecked,
-  selectionActive,
   onAddIssue,
 }: {
   status: WorkItemStatus

@@ -21,7 +21,13 @@ import {
   IssueStatusBadge,
   issueStatusStripBackground,
 } from "@/components/orbit/issues/issue-badges"
-import type { MyTaskStatus } from "@/lib/status"
+import {
+  countOpenIssuesForAssignee,
+  CURRENT_USER,
+  getAssignee,
+  getIssuesForAssignee,
+  issuesSeed,
+} from "@/lib/issues-data"
 import {
   countProjectsNeedingAttention,
   getDashboardKpiCounts,
@@ -40,14 +46,8 @@ import {
 } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
-type MyTask = {
-  id: string
-  title: string
-  assignee?: string
-  priority: "low" | "medium" | "high"
-  status: MyTaskStatus
-  dueLabel?: string
-}
+// Annika's tasks — same data as /issues and the Assigned to Me KPI.
+const myIssues = getIssuesForAssignee(CURRENT_USER.id)
 
 type OpenIssue = {
   id: string
@@ -58,64 +58,30 @@ type OpenIssue = {
   avatarUrl: string
 }
 
-// Placeholder data until we connect a real backend (DB + API).
-const openIssues: OpenIssue[] = [
-  {
-    id: "ORB-123",
-    assignee: "Jacob Martinez",
-    description: "Checkout fails when users apply two discount codes in the same cart.",
-    avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    id: "ORB-124",
-    assignee: "Luke Bell",
-    description: "Export to CSV times out for workspaces with more than 10k rows.",
-    avatarUrl: "https://randomuser.me/api/portraits/men/67.jpg",
-  },
-  {
-    id: "ORB-125",
-    assignee: "Connor Mitchell",
-    description: "Push notifications stopped arriving on Android after the last release.",
-    avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg",
-  },
-]
+// Open issues from teammates — derived from the shared issues seed.
+const openIssues: OpenIssue[] = issuesSeed
+  .filter((issue) => issue.status !== "completed" && issue.assigneeId !== CURRENT_USER.id)
+  .slice(0, 3)
+  .map((issue) => {
+    const assignee = getAssignee(issue.assigneeId)!
+    return {
+      id: issue.id,
+      assignee: assignee.name,
+      description: issue.title,
+      avatarUrl: assignee.avatarUrl,
+    }
+  })
 
-const myTasks: MyTask[] = [
-  {
-    id: "ORB-123",
-    title: "Implement user authentication flow",
-    priority: "high",
-    status: "in_progress",
-    dueLabel: "May 18",
-  },
-  {
-    id: "ORB-129",
-    title: "Update API documentation",
-    priority: "medium",
-    status: "todo",
-    dueLabel: "Jun 4",
-  },
-  {
-    id: "ORB-131",
-    title: "Fix responsive layout issues",
-    priority: "high",
-    status: "in_progress",
-    dueLabel: "Jun 6",
-  },
-  { id: "ORB-135", title: "Add dark mode support", priority: "low", status: "in_review" },
-  {
-    id: "ORB-140",
-    title: "Polish onboarding empty states",
-    priority: "medium",
-    status: "completed",
-  },
-  {
-    id: "ORB-141",
-    title: "Audit role permissions for billing",
-    priority: "low",
-    status: "completed",
-  },
-]
+// Live counts so the headline KPIs stay in sync with project/task data.
+const kpiCounts = {
+  ...getDashboardKpiCounts(
+    myIssues.map((issue) => ({
+      status: issue.status,
+      dueLabel: issue.dueLabel,
+    }))
+  ),
+  assignedToMe: countOpenIssuesForAssignee(CURRENT_USER.id),
+}
 
 type Meeting = {
   id: string
@@ -129,10 +95,6 @@ const myMeetings: Meeting[] = [
   { id: "meet-2", title: "User Research", time: "2:30 PM", provider: "Zoom" },
 ]
 
-// Live counts so the headline KPIs stay in sync with project/task data.
-// Project-level cards drill into /projects; task-level cards (In Progress,
-// Assigned to Me) drill into /issues, which lights up once that page exists.
-const kpiCounts = getDashboardKpiCounts(myTasks)
 const needsAttentionCount = countProjectsNeedingAttention()
 
 const dashboardKpis = [
@@ -409,8 +371,8 @@ export default function Home() {
                 My Tasks
               </CardTitle>
               <CardDescription className="text-sm leading-snug text-muted-foreground">
-                {myTasks.filter((t) => t.status !== "completed").length} open ·{" "}
-                {myTasks.filter((t) => t.status === "completed").length} completed
+                {myIssues.filter((t) => t.status !== "completed").length} open ·{" "}
+                {myIssues.filter((t) => t.status === "completed").length} completed
               </CardDescription>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -442,7 +404,7 @@ export default function Home() {
           </CardHeader>
           <CardContent className="px-7 pb-7">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {myTasks.map((task) => {
+              {myIssues.map((task) => {
                 const isDone = task.status === "completed"
                 return (
                   <div

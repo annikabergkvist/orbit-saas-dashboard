@@ -74,7 +74,7 @@ const navItems: {
 
   { title: "Dashboard", href: "/", icon: HouseIcon },
 
-  { title: "Messages", href: "/messages", icon: MessageCircleIcon, unreadCount: 5 },
+  { title: "Messages", href: "/messages", icon: MessageCircleIcon, unreadCount: 3 },
 
   { title: "Projects", href: "/projects", icon: LayoutGridIcon },
 
@@ -243,6 +243,8 @@ export function OrbitAppSidebar() {
           variant="default"
 
           size="lg"
+
+          nativeButton={false}
 
           className="h-10 w-full justify-center gap-2 px-4 group-data-[collapsible=icon]:justify-center"
 

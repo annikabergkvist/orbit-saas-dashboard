@@ -1,3 +1,6 @@
+import { getProjectTitle } from "@/lib/issues-data"
+import { getTeamMember } from "@/lib/team-data"
+
 export type NotificationCategory =
   | "task"
   | "comment"
@@ -98,6 +101,15 @@ function minutesAgo(minutes: number) {
   return new Date(Date.now() - minutes * 60_000).toISOString()
 }
 
+function teamActor(memberId: string): NotificationActor {
+  const member = getTeamMember(memberId)!
+  return { id: member.id, name: member.name, avatarUrl: member.avatarUrl }
+}
+
+function projectRef(slug: string): NotificationProject {
+  return { id: slug, name: getProjectTitle(slug), href: `/projects/${slug}` }
+}
+
 export const seedNotifications: Notification[] = [
   {
     id: "notif-1",
@@ -105,18 +117,14 @@ export const seedNotifications: Notification[] = [
     readAt: null,
     category: "mention",
     action: "mentioned_you",
-    actor: {
-      id: "u-lucy",
-      name: "Lucy Livingstone",
-      avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
+    actor: teamActor("u-sara"),
     entity: {
-      type: "task",
-      id: "ORB-140",
-      name: "Polish onboarding empty states",
-      href: "/tasks/ORB-140",
+      type: "issue",
+      id: "ORB-205",
+      name: "Dark mode polish for billing screens",
+      href: "/issues?assignee=u-maria",
     },
-    project: { id: "proj-onboarding", name: "Onboarding Revamp", href: "/projects/onboarding" },
+    project: projectRef("customer-portal-v2"),
     ctas: [{ kind: "button", label: "Reply", actionId: "reply" }],
   },
   {
@@ -125,21 +133,15 @@ export const seedNotifications: Notification[] = [
     readAt: null,
     category: "assignment",
     action: "assigned_you",
-    actor: {
-      id: "u-luke",
-      name: "Luke Bell",
-      avatarUrl: "https://randomuser.me/api/portraits/men/67.jpg",
-    },
+    actor: teamActor("u-alex"),
     entity: {
-      type: "task",
-      id: "ORB-131",
-      name: "Fix responsive layout issues",
-      href: "/tasks/ORB-131",
+      type: "issue",
+      id: "ORB-217",
+      name: "Chart tooltip focus trap",
+      href: "/issues?assignee=me",
     },
-    project: { id: "proj-frontend", name: "Frontend Polish", href: "/projects/frontend" },
-    ctas: [
-      { kind: "link", label: "View", href: "/tasks/ORB-131" },
-    ],
+    project: projectRef("analytics-dashboard"),
+    ctas: [{ kind: "link", label: "View", href: "/issues?assignee=me" }],
   },
   {
     id: "notif-3",
@@ -147,18 +149,14 @@ export const seedNotifications: Notification[] = [
     readAt: minutesAgo(30),
     category: "status",
     action: "status_changed",
-    actor: {
-      id: "u-jacob",
-      name: "Jacob Martinez",
-      avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
+    actor: teamActor("u-chris"),
     entity: {
-      type: "task",
-      id: "ORB-123",
-      name: "Implement user authentication flow",
-      href: "/tasks/ORB-123",
+      type: "issue",
+      id: "ORB-208",
+      name: "Configurable Slack routing filters",
+      href: "/issues?assignee=u-chris",
     },
-    project: { id: "proj-auth", name: "Auth Platform", href: "/projects/auth" },
+    project: projectRef("slack-integration"),
   },
   {
     id: "notif-4",
@@ -166,28 +164,23 @@ export const seedNotifications: Notification[] = [
     readAt: minutesAgo(120),
     category: "comment",
     action: "commented",
-    actor: {
-      id: "u-adnan",
-      name: "Adnan Niki",
-      avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg",
-    },
+    actor: teamActor("u-priya"),
     entity: {
-      type: "task",
-      id: "ORB-129",
-      name: "Update API documentation",
-      href: "/tasks/ORB-129",
+      type: "issue",
+      id: "ORB-206",
+      name: "Document webhooks in the API reference",
+      href: "/issues?assignee=u-priya",
     },
-    project: { id: "proj-api", name: "API Platform", href: "/projects/api" },
+    project: projectRef("api-documentation"),
     commentPreview: {
-      title: "Update API documentation",
+      title: "Document webhooks in the API reference",
       summary:
         "Can we add a short section for error codes and a small example request/response for the auth endpoints?",
       thumbnailUrl:
         "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=160&h=120&q=60",
-      href: "/tasks/ORB-129",
-      threadHref: "/tasks/ORB-129#comments",
-      moreCount: 7,
+      href: "/issues?assignee=u-priya",
+      threadHref: "/issues?assignee=u-priya",
+      moreCount: 2,
     },
   },
 ]
-

@@ -473,8 +473,8 @@ export const projectsSeed: ProjectSummary[] = [
       },
       {
         id: "m-15",
-        name: "Anna Bergkvist",
-        avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+        name: "Annika Bergkvist",
+        avatarUrl: "/avatars/annika.png?v=2",
       },
     ],
   },
@@ -1316,8 +1316,8 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         assignees: [
           {
             id: "m-15",
-            name: "Anna Bergkvist",
-            avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+            name: "Annika Bergkvist",
+            avatarUrl: "/avatars/annika.png?v=2",
           },
         ],
       },
@@ -1336,8 +1336,8 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         assignees: [
           {
             id: "m-15",
-            name: "Anna Bergkvist",
-            avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+            name: "Annika Bergkvist",
+            avatarUrl: "/avatars/annika.png?v=2",
           },
         ],
       },
@@ -1374,8 +1374,8 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         assignees: [
           {
             id: "m-15",
-            name: "Anna Bergkvist",
-            avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+            name: "Annika Bergkvist",
+            avatarUrl: "/avatars/annika.png?v=2",
           },
         ],
       },
@@ -1443,8 +1443,8 @@ const boardsBySlug: Record<string, ProjectBoard> = {
         assignees: [
           {
             id: "m-15",
-            name: "Anna Bergkvist",
-            avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+            name: "Annika Bergkvist",
+            avatarUrl: "/avatars/annika.png?v=2",
           },
         ],
       },

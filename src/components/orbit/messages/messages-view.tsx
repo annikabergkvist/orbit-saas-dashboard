@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import {
   AtSignIcon,
   ChevronDownIcon,
@@ -32,9 +33,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { CURRENT_USER, getProjectTitle } from "@/lib/issues-data"
+import { getTeamMember } from "@/lib/team-data"
 import { cn } from "@/lib/utils"
-
-const currentUserAvatar = "/avatars/annika.png?v=2"
 
 type ChatMessage = {
   id: string
@@ -43,20 +44,17 @@ type ChatMessage = {
   time: string
 }
 
-type TeamScope = "orbit" | "acme"
-
-type InboxTab = "all" | "orbit" | "acme"
-
 type PinnedKind = "pr" | "meeting" | "none"
 
 type Conversation = {
   id: string
+  memberId: string
   name: string
   handle: string
   activityLabel: string
   timeLabel: string
   snippet: string
-  team: TeamScope
+  projectSlug: string
   unread: number
   avatarUrl: string
   workItem: {
@@ -76,26 +74,27 @@ type Conversation = {
 
 const conversations: Conversation[] = [
   {
-    id: "marco",
-    name: "Marco Ruiz",
-    handle: "marco",
-    activityLabel: "Thread in #platform-infra",
+    id: "u-chris",
+    memberId: "u-chris",
+    name: getTeamMember("u-chris")!.name,
+    handle: "chris",
+    activityLabel: "Thread in #integrations",
     timeLabel: "12m",
     snippet: "Can you own the rollback checklist before Friday’s change window?",
-    team: "orbit",
+    projectSlug: "slack-integration",
     unread: 2,
-    avatarUrl: "https://randomuser.me/api/portraits/men/44.jpg",
+    avatarUrl: getTeamMember("u-chris")!.avatarUrl,
     workItem: {
-      id: "ORB-412",
-      title: "Migrate auth service to OIDC",
+      id: "ORB-208",
+      title: "Configurable Slack routing filters",
       status: "In Review",
-      project: "Platform · Sprint 24",
+      project: getProjectTitle("slack-integration"),
     },
     messages: [
       {
         id: "m1",
         role: "them",
-        body: "We’re green-lit for the OIDC cutover next week. I need someone to own the rollback checklist and the comms draft for CS.",
+        body: "We’re green-lit for the Slack routing release next week. I need someone to own the rollback checklist and the comms draft for CS.",
         time: "Yesterday at 4:12 PM",
       },
       {
@@ -113,13 +112,13 @@ const conversations: Conversation[] = [
       {
         id: "m4",
         role: "me",
-        body: "Sounds good. I’ll have the rollback doc + CS comms draft in #platform-infra by EOD tomorrow and link the staging soak results on the PR.",
+        body: "Sounds good. I’ll have the rollback doc in #integrations by EOD tomorrow and link the staging soak results on the PR.",
         time: "Today at 9:52 AM",
       },
       {
         id: "m5",
         role: "them",
-        body: "Great — I’ll add Priya from SRE to the change calendar invite once you drop the checklist link. Thanks for owning this end-to-end.",
+        body: "Great — I’ll add Priya from the platform team to the change calendar once you drop the checklist link.",
         time: "Today at 10:03 AM",
       },
     ],
@@ -131,61 +130,63 @@ const conversations: Conversation[] = [
     },
   },
   {
-    id: "dana",
-    name: "Dana Okonkwo",
-    handle: "dana_ok",
-    activityLabel: "@ Mention in #acme-delivery",
+    id: "u-alex",
+    memberId: "u-alex",
+    name: getTeamMember("u-alex")!.name,
+    handle: "alex",
+    activityLabel: "@ Mention in #analytics",
     timeLabel: "2h",
-    snippet: "Can we get a written ETA on the export timeouts fix before exec readout?",
-    team: "acme",
+    snippet: "Can we get a written ETA on the export timeouts fix before the exec readout?",
+    projectSlug: "analytics-dashboard",
     unread: 1,
-    avatarUrl: "https://randomuser.me/api/portraits/women/22.jpg",
+    avatarUrl: getTeamMember("u-alex")!.avatarUrl,
     workItem: {
-      id: "ORB-128",
-      title: "Export job timeouts over 10k rows",
+      id: "ORB-203",
+      title: "CSV export times out beyond 10k rows",
       status: "In Progress",
-      project: "ACME Corp · Success track",
+      project: getProjectTitle("analytics-dashboard"),
     },
     messages: [
       {
         id: "a1",
         role: "them",
-        body: "Can we get a written ETA on the export timeouts fix before Tuesday’s exec readout? Legal wants it in the deck.",
+        body: "Can we get a written ETA on the export timeouts fix before Tuesday’s exec readout? Product wants it in the deck.",
         time: "Today at 11:02 AM",
       },
     ],
     timeline: ["Customer SLA · 48h response", "Exec readout · Tue 10:00 AM"],
     pinned: {
       kind: "meeting",
-      summary: "Customer sync · starts in 25 minutes",
+      summary: "Team sync · starts in 25 minutes",
       cta: "Join meeting",
     },
   },
   {
-    id: "sofia",
-    name: "Sofia Nguyen",
-    handle: "sofia_n",
+    id: "u-priya",
+    memberId: "u-priya",
+    name: getTeamMember("u-priya")!.name,
+    handle: "priya",
     activityLabel: "Direct message",
     timeLabel: "Yesterday",
-    snippet: "Left comments on the SCIM doc — mostly small clarifications.",
-    team: "orbit",
+    snippet: "Left comments on the webhooks doc — mostly small clarifications.",
+    projectSlug: "api-documentation",
     unread: 0,
-    avatarUrl: "https://randomuser.me/api/portraits/women/63.jpg",
+    avatarUrl: getTeamMember("u-priya")!.avatarUrl,
     workItem: {
-      id: "ORB-501",
-      title: "SCIM provisioning documentation",
+      id: "ORB-206",
+      title: "Document webhooks in the API reference",
       status: "To Do",
-      project: "Security · Docs guild",
+      project: getProjectTitle("api-documentation"),
     },
     messages: [
       {
         id: "s1",
         role: "them",
-        body: "Left comments on the SCIM doc — mostly small clarifications. Ping me if anything’s unclear before the guild review.",
+        body: "Left comments on the webhooks doc — mostly small clarifications. Ping me if anything’s unclear before the guild review.",
         time: "Yesterday at 6:30 PM",
       },
     ],
-    timeline: ["Doc freeze · May 9", "Guild review · next week"],
+    timeline: ["Doc freeze · Jun 9", "Guild review · next week"],
     pinned: {
       kind: "none",
       summary: "",
@@ -194,33 +195,21 @@ const conversations: Conversation[] = [
   },
 ]
 
-function WorkspaceBadge({ team }: { team: TeamScope }) {
-  if (team === "orbit") {
-    return (
-      <Badge className="rounded-md border-0 bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary hover:bg-primary/20">
-        Orbit
-      </Badge>
-    )
-  }
+function ProjectBadge({ projectSlug }: { projectSlug: string }) {
   return (
     <Badge
       variant="secondary"
-      className="rounded-md border-0 bg-orange-500/15 px-2.5 py-0.5 text-xs font-semibold text-orange-800 hover:bg-orange-500/20 dark:text-orange-300"
+      className="rounded-md border-0 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary hover:bg-primary/15"
     >
-      ACME
+      {getProjectTitle(projectSlug)}
     </Badge>
   )
 }
 
-const inboxTabs: { id: InboxTab; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "orbit", label: "Orbit" },
-  { id: "acme", label: "Clients" },
-]
-
 export function MessagesView() {
+  const searchParams = useSearchParams()
+  const memberParam = searchParams.get("member")
   const [activeId, setActiveId] = React.useState(conversations[0].id)
-  const [inboxTab, setInboxTab] = React.useState<InboxTab>("all")
   const [unreadsOnly, setUnreadsOnly] = React.useState(false)
   /** Below `md`, alternate between activity list and thread (Slack-mobile style). */
   const [mobileShowInbox, setMobileShowInbox] = React.useState(true)
@@ -232,11 +221,9 @@ export function MessagesView() {
   const visible = React.useMemo(() => {
     return conversations.filter((c) => {
       if (unreadsOnly && c.unread === 0) return false
-      if (inboxTab === "orbit" && c.team !== "orbit") return false
-      if (inboxTab === "acme" && c.team !== "acme") return false
       return true
     })
-  }, [unreadsOnly, inboxTab])
+  }, [unreadsOnly])
 
   const resolvedActiveId = React.useMemo(() => {
     if (visible.length === 0) return activeId
@@ -250,6 +237,13 @@ export function MessagesView() {
       return () => cancelAnimationFrame(id)
     }
   }, [isMobile])
+
+  React.useEffect(() => {
+    if (memberParam && conversations.some((c) => c.memberId === memberParam)) {
+      setActiveId(memberParam)
+      if (isMobile) setMobileShowInbox(false)
+    }
+  }, [memberParam, isMobile])
 
   const selectConversation = React.useCallback(
     (id: string) => {
@@ -269,7 +263,7 @@ export function MessagesView() {
       <div className="flex shrink-0 flex-wrap items-end gap-x-3 gap-y-3 border-b border-border bg-transparent px-4 py-3 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-4 md:px-10 md:py-5 lg:px-12">
         <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
           <p className="hidden max-w-xl text-sm leading-relaxed text-muted-foreground sm:block">
-            DMs, mentions, and customer threads across your workspaces — tied to issues and projects.
+            Team DMs and mentions — tied to issues and projects.
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 md:w-auto md:justify-end">
@@ -280,7 +274,7 @@ export function MessagesView() {
             className="h-10 gap-1.5 rounded-lg border-border bg-background px-3 text-sm font-medium shadow-none sm:gap-2 sm:px-4"
           >
             <SlidersHorizontalIcon className="size-4 shrink-0" strokeWidth={1.75} />
-            <span className="max-w-[9.5rem] truncate sm:max-w-none">All workspaces</span>
+            <span className="max-w-[9.5rem] truncate sm:max-w-none">All projects</span>
             <ChevronDownIcon className="size-4 shrink-0 opacity-60" />
           </Button>
           <div className="relative min-w-0 flex-1 basis-[min(100%,14rem)] sm:min-w-[200px] md:w-72 md:flex-none">
@@ -335,24 +329,6 @@ export function MessagesView() {
                 />
               </button>
             </div>
-          </div>
-
-          <div className="-mx-1 flex gap-0.5 overflow-x-auto border-b border-border px-2 pt-1 sm:mx-0 sm:gap-1 sm:px-3">
-            {inboxTabs.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setInboxTab(t.id)}
-                className={cn(
-                  "relative shrink-0 px-3 py-3 text-sm font-medium transition-colors sm:px-4",
-                  inboxTab === t.id
-                    ? "text-foreground after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary sm:after:inset-x-3"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -512,7 +488,7 @@ export function MessagesView() {
                 <span className="font-medium text-foreground/90">{active.workItem.status}</span>
               </p>
             </div>
-            <WorkspaceBadge team={active.team} />
+            <ProjectBadge projectSlug={active.projectSlug} />
             <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto sm:justify-end">
               <Button
                 type="button"
@@ -571,7 +547,7 @@ export function MessagesView() {
                         )}
                       >
                         <Avatar className="mt-0.5 size-9 shrink-0 rounded-md border border-border/80 bg-muted sm:size-10">
-                          <AvatarImage src={currentUserAvatar} alt="" />
+                          <AvatarImage src={CURRENT_USER.avatarUrl} alt="" />
                           <AvatarFallback className="rounded-md text-sm font-medium">You</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1 space-y-0.5">

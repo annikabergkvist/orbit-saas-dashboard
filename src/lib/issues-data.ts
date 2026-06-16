@@ -1,5 +1,6 @@
 import type { WorkItemStatus } from "@/lib/status"
 import { isDueOverdue, parseDueLabel, projectsSeed } from "@/lib/projects-data"
+import { CURRENT_USER_ID, teamMembersSeed } from "@/lib/team-data"
 
 export type IssuePriority = "low" | "medium" | "high"
 
@@ -44,21 +45,17 @@ export type SortDir = "asc" | "desc"
  * Mirrors the user in the app shell (dashboard-shell.tsx).
  */
 export const CURRENT_USER: IssueAssignee = {
-  id: "u-annika",
-  name: "Annika Bergkvist",
-  avatarUrl: "/avatars/annika.png?v=2",
+  id: CURRENT_USER_ID,
+  name: teamMembersSeed.find((m) => m.id === CURRENT_USER_ID)!.name,
+  avatarUrl: teamMembersSeed.find((m) => m.id === CURRENT_USER_ID)!.avatarUrl,
 }
 
-/** Curated roster used for issue assignment (distinct avatars). */
-export const issueAssignees: IssueAssignee[] = [
-  CURRENT_USER,
-  { id: "u-sara", name: "Sara Chen", avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg" },
-  { id: "u-alex", name: "Alex Johnson", avatarUrl: "https://randomuser.me/api/portraits/men/22.jpg" },
-  { id: "u-maria", name: "Maria Lopez", avatarUrl: "https://randomuser.me/api/portraits/women/33.jpg" },
-  { id: "u-priya", name: "Priya Singh", avatarUrl: "https://randomuser.me/api/portraits/women/28.jpg" },
-  { id: "u-chris", name: "Chris Morgan", avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg" },
-  { id: "u-ryan", name: "Ryan Cooper", avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg" },
-]
+/** Curated roster used for issue assignment — derived from team-data. */
+export const issueAssignees: IssueAssignee[] = teamMembersSeed.map(({ id, name, avatarUrl }) => ({
+  id,
+  name,
+  avatarUrl,
+}))
 
 const assigneeById = new Map(issueAssignees.map((a) => [a.id, a]))
 
@@ -83,7 +80,63 @@ export const ISSUE_STATUS_ORDER: WorkItemStatus[] = [
   "completed",
 ]
 
-export const issuesSeed: Issue[] = [
+function seedIssue(
+  id: string,
+  title: string,
+  assigneeId: string,
+  projectSlug: string,
+  status: WorkItemStatus = "in_progress"
+): Issue {
+  return {
+    id,
+    title,
+    description: "Tracked in the Orbit issues backlog.",
+    status,
+    priority: "medium",
+    assigneeId,
+    projectSlug,
+    dueLabel: "Jun 30",
+    createdLabel: "Jun 8",
+    comments: [],
+  }
+}
+
+/** Spread workload across the team — counts stay derived on the Team page. */
+const workloadIssues: Issue[] = [
+  seedIssue("ORB-211", "Auth session refresh edge cases", "u-annika", "frontend-integration"),
+  seedIssue("ORB-212", "Timeline card loading skeleton", "u-annika", "frontend-integration"),
+  seedIssue("ORB-213", "Invoice table empty state copy", "u-sara", "customer-portal-v2", "todo"),
+  seedIssue("ORB-214", "Plan change confirmation modal", "u-sara", "customer-portal-v2"),
+  seedIssue("ORB-215", "Billing error toast patterns", "u-sara", "customer-portal-v2", "in_review"),
+  seedIssue("ORB-216", "Self-service nav IA tweaks", "u-sara", "customer-portal-v2", "todo"),
+  seedIssue("ORB-217", "Chart tooltip focus trap", "u-alex", "analytics-dashboard"),
+  seedIssue("ORB-218", "Export progress indicator", "u-alex", "analytics-dashboard", "todo"),
+  seedIssue("ORB-219", "Retention cohort filter chips", "u-alex", "analytics-dashboard"),
+  seedIssue("ORB-220", "Executive summary print styles", "u-alex", "analytics-dashboard", "in_review"),
+  seedIssue("ORB-221", "Dashboard shell lazy routes", "u-alex", "frontend-integration"),
+  seedIssue("ORB-222", "Notification popover keyboard nav", "u-alex", "frontend-integration", "todo"),
+  seedIssue("ORB-223", "FCM token migration checklist", "u-jordan", "mobile-app-launch", "todo"),
+  seedIssue("ORB-224", "Billing contrast audit follow-ups", "u-maria", "customer-portal-v2"),
+  seedIssue("ORB-225", "Webhook signature code sample", "u-priya", "api-documentation", "todo"),
+  seedIssue("ORB-226", "Rate limit error examples", "u-priya", "api-documentation"),
+  seedIssue("ORB-227", "Slack install OAuth redirect", "u-chris", "slack-integration"),
+  seedIssue("ORB-228", "Channel picker search debounce", "u-chris", "slack-integration", "todo"),
+  seedIssue("ORB-229", "Routing filter validation rules", "u-chris", "slack-integration"),
+  seedIssue("ORB-230", "Notification payload size cap", "u-chris", "slack-integration", "in_review"),
+  seedIssue("ORB-231", "Regression suite for push tokens", "u-ryan", "mobile-app-launch", "todo"),
+  seedIssue("ORB-232", "Image lazy-load below-fold audit", "u-lisa", "performance-optimization"),
+  seedIssue("ORB-233", "Bundle split vendor chunks", "u-lisa", "performance-optimization", "todo"),
+  seedIssue("ORB-234", "Query waterfall batching pass", "u-lisa", "performance-optimization"),
+  seedIssue("ORB-235", "LCP hero image priority hints", "u-lisa", "performance-optimization", "in_review"),
+  seedIssue("ORB-236", "Font subsetting for shell", "u-lisa", "performance-optimization", "todo"),
+  seedIssue("ORB-237", "Prefetch tuning for projects route", "u-lisa", "performance-optimization"),
+  seedIssue("ORB-238", "Cache header stale-while-revalidate", "u-lisa", "performance-optimization", "todo"),
+  seedIssue("ORB-239", "Third-party script defer audit", "u-lisa", "performance-optimization"),
+  seedIssue("ORB-240", "Critical CSS extraction spike", "u-lisa", "performance-optimization", "in_review"),
+  seedIssue("ORB-241", "Performance budget CI gate", "u-lisa", "performance-optimization", "todo"),
+]
+
+const coreIssues: Issue[] = [
   {
     id: "ORB-201",
     title: "Implement SSO with SAML",
@@ -151,7 +204,7 @@ export const issuesSeed: Issue[] = [
       "Push delivery stopped on Android following the last build. Likely an FCM token refresh regression.",
     status: "todo",
     priority: "high",
-    assigneeId: "u-annika",
+    assigneeId: "u-jordan",
     projectSlug: "mobile-app-launch",
     dueLabel: "May 30",
     createdLabel: "May 20",
@@ -285,6 +338,26 @@ export const issuesSeed: Issue[] = [
     ],
   },
 ]
+
+export const issuesSeed: Issue[] = [...coreIssues, ...workloadIssues]
+
+/** Open (non-completed) issues for an assignee — shared by Team and dashboard KPIs. */
+export function countOpenIssuesForAssignee(
+  assigneeId: string,
+  issues: Issue[] = issuesSeed
+): number {
+  return issues.filter(
+    (issue) => issue.assigneeId === assigneeId && issue.status !== "completed"
+  ).length
+}
+
+/** All issues assigned to a team member — dashboard My Tasks, filters, etc. */
+export function getIssuesForAssignee(
+  assigneeId: string,
+  issues: Issue[] = issuesSeed
+): Issue[] {
+  return issues.filter((issue) => issue.assigneeId === assigneeId)
+}
 
 /** Derived: an issue is overdue when it's not completed and past its due date. */
 export function isIssueOverdue(issue: Issue, reference: Date = new Date()): boolean {

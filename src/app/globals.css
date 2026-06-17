@@ -236,14 +236,22 @@
   --kpi-delta-down: oklch(0.47 0.06 27);
   --kpi-delta-down-foreground: oklch(0.96 0.09 27);
 
-  /* Keep sidebar white even in dark mode (per design request). */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --dashboard-mesh-base: oklch(0.16 0.01 280);
+
+  --glass-bg: rgb(32 32 36 / 0.45);
+  --glass-blur: 44px;
+  --glass-saturate: 1.85;
+  --glass-subtle-bg: rgb(36 36 40 / 0.78);
+  --glass-subtle-blur: 18px;
+  --glass-subtle-saturate: 1.35;
+
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: var(--primary);
 }
 
@@ -270,6 +278,15 @@
     radial-gradient(circle 660px at 48% 48%, #d8cce0 0%, #e8e2ea 50%, rgb(245 242 237 / 0) 80%);
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+.dark .dashboard-mesh-gradient {
+  background-image:
+    radial-gradient(circle 540px at 8% 12%, oklch(0.28 0.04 320 / 0.55) 0%, transparent 74%),
+    radial-gradient(circle 500px at 92% 8%, oklch(0.26 0.04 250 / 0.5) 0%, transparent 72%),
+    radial-gradient(circle 580px at 86% 90%, oklch(0.3 0.05 70 / 0.35) 0%, transparent 76%),
+    radial-gradient(circle 480px at 12% 88%, oklch(0.27 0.03 290 / 0.4) 0%, transparent 74%),
+    radial-gradient(circle 660px at 48% 48%, oklch(0.24 0.03 280 / 0.45) 0%, transparent 80%);
 }
 
 .dashboard-header-search {
@@ -434,4 +451,27 @@
 .glass-menu [data-slot="dropdown-menu-item"]:focus,
 .glass-menu [data-slot="dropdown-menu-item"][data-highlighted] {
   background-color: rgb(255 255 255 / 0.35);
+}
+
+.dark .glass-menu [data-slot="dropdown-menu-item"]:focus,
+.dark .glass-menu [data-slot="dropdown-menu-item"][data-highlighted] {
+  background-color: rgb(255 255 255 / 0.08);
+}
+
+/* Appearance preferences — applied from Settings. */
+html[data-density="compact"] {
+  --settings-section-gap: 1rem;
+}
+
+html:not([data-density="compact"]) {
+  --settings-section-gap: 1.5rem;
+}
+
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }

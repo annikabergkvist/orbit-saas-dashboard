@@ -12,6 +12,12 @@ export type TeamMember = {
   roleGroup: TeamRoleGroup
   email: string
   avatarUrl: string
+  /** Optional profile bio — shown on Settings and team detail. */
+  bio?: string
+  /** Connected GitHub username for Account settings. */
+  githubUsername?: string
+  /** Connected Figma username for Account settings. */
+  figmaUsername?: string
   /**
    * NOTE: Status is currently driven by seed data.
    * In production this would connect to a presence system
@@ -86,6 +92,9 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "design",
     email: "annika@orbit.app",
     avatarUrl: "/avatars/annika.png?v=2",
+    bio: "Design engineer focused on the space between design and engineering — building interfaces that feel effortless.",
+    githubUsername: "annikabergkvist",
+    figmaUsername: "annikabergkvist",
     presence: "online",
   },
   {
@@ -260,6 +269,15 @@ export function presenceLabel(presence: TeamPresence): string {
 
 export function getTeamMember(id: string): TeamMember | undefined {
   return memberById.get(id)
+}
+
+/** Signed-in user — single source for shell header, Settings profile, and issue identity. */
+export function getCurrentUser(): TeamMember {
+  const member = getTeamMember(CURRENT_USER_ID)
+  if (!member) {
+    throw new Error(`Current user "${CURRENT_USER_ID}" is missing from teamMembersSeed`)
+  }
+  return member
 }
 
 export function getProjectTitle(slug: string): string {

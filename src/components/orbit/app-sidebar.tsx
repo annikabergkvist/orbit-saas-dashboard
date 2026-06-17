@@ -110,11 +110,21 @@ export function OrbitAppSidebar() {
 
       <SidebarHeader className="gap-5 px-7 pt-7 pb-5">
 
-        <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-
-          <div className="truncate text-md font-semibold">Orbit</div>
-
-        </div>
+        <Link
+          href="/"
+          className="inline-flex min-w-0 items-center rounded-lg outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50"
+          aria-label="Orbit — go to dashboard"
+        >
+          <div className="truncate text-md font-semibold group-data-[collapsible=icon]:hidden">
+            Orbit
+          </div>
+          <span
+            className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary group-data-[collapsible=icon]:flex"
+            aria-hidden
+          >
+            O
+          </span>
+        </Link>
 
       </SidebarHeader>
 

@@ -44,26 +44,32 @@ import {
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import { cn } from "@/lib/utils"
+import { getCurrentUser } from "@/lib/team-data"
 
-
-
-const currentUser = {
-  name: "Annika Bergkvist",
-  email: "annika@orbit.app",
-  avatarUrl: "/avatars/annika.png?v=2",
-}
+const currentUser = getCurrentUser()
 
 /** Frosted hover for top-bar icon buttons and profile (overrides ghost `hover:bg-muted`). */
 const headerActionClass = cn(
   "header-action-hover hover:bg-white/35 hover:text-foreground hover:backdrop-blur-sm",
   "hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.55)] active:bg-white/25",
-  "aria-expanded:bg-white/40 aria-expanded:shadow-[inset_0_1px_0_rgb(255_255_255/0.55)]"
+  "aria-expanded:bg-white/40 aria-expanded:shadow-[inset_0_1px_0_rgb(255_255_255/0.55)]",
+  "dark:hover:bg-white/10 dark:active:bg-white/5 dark:aria-expanded:bg-white/12",
+  "dark:hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] dark:aria-expanded:shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]"
 )
 
 
 
 function userFirstName(fullName: string) {
   return fullName.split(/\s+/)[0] ?? fullName
+}
+
+function userInitials(fullName: string) {
+  return fullName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
 }
 
 function getTimeBasedGreeting(firstName: string): string {
@@ -96,7 +102,7 @@ function shellHeaderTitle(pathname: string): string | null {
   if (pathname === "/projects" || pathname.startsWith("/projects/")) return "Projects"
   if (pathname === "/issues") return "Issues"
   if (pathname === "/team") return "Team"
-  if (pathname === "/settings") return "Settings"
+  if (pathname === "/settings") return null
   return null
 }
 
@@ -188,7 +194,7 @@ function UserAccountMenu({ compactOnMobile = true }: { compactOnMobile?: boolean
             <Avatar size="md" className="bg-muted text-foreground">
               <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
               <AvatarFallback className="bg-primary font-semibold text-primary-foreground">
-                AB
+                {userInitials(currentUser.name)}
               </AvatarFallback>
             </Avatar>
 
@@ -226,7 +232,11 @@ function UserAccountMenu({ compactOnMobile = true }: { compactOnMobile?: boolean
         <DropdownMenuSeparator className="my-0" />
 
         <div className="p-1">
-          <DropdownMenuItem className="rounded-sm px-3 py-2">
+          <DropdownMenuItem
+            className="rounded-sm px-3 py-2"
+            render={<Link href="/settings?tab=account" />}
+            nativeButton={false}
+          >
             Account settings
           </DropdownMenuItem>
           <DropdownMenuItem className="rounded-sm px-3 py-2">Support</DropdownMenuItem>

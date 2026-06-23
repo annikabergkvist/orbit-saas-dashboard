@@ -38,6 +38,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { loadPersistedIssues, savePersistedIssues } from "@/lib/client-store"
 import { isWorkItemStatus, type WorkItemStatus } from "@/lib/status"
 import {
   CURRENT_USER,
@@ -485,8 +486,12 @@ export function IssuesView() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-  const [issues, setIssues] = React.useState<Issue[]>(issuesSeed)
-  const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(null)
+  const [issues, setIssues] = React.useState(() => loadPersistedIssues(issuesSeed))
+  const [selectedIssueId, setSelectedIssueId] = React.useState<string | null>(() => {
+    const issueId = searchParams.get("issue")
+    if (!issueId) return null
+    return issuesSeed.some((issue) => issue.id === issueId) ? issueId : null
+  })
   const [newIssueOpen, setNewIssueOpen] = React.useState(false)
   const [newIssueStatus, setNewIssueStatus] = React.useState<WorkItemStatus>("todo")
   const [checkedIds, setCheckedIds] = React.useState<Set<string>>(new Set())
@@ -495,6 +500,10 @@ export function IssuesView() {
   const [sortKey, setSortKey] = React.useState<IssueSortKey>("priority")
   const [sortDir, setSortDir] = React.useState<SortDir>("asc")
   const [collapsed, setCollapsed] = React.useState<Set<WorkItemStatus>>(new Set())
+
+  React.useEffect(() => {
+    savePersistedIssues(issues)
+  }, [issues])
 
   // Apply filters arriving from dashboard KPI cards / deep links.
   React.useEffect(() => {
@@ -888,6 +897,8 @@ export function IssuesView() {
         open={newIssueOpen}
         onOpenChange={setNewIssueOpen}
         initialStatus={newIssueStatus}
+        initialProjectSlug={filters.projectSlug}
+        initialAssigneeId={filters.assigneeId}
         onCreate={createIssue}
       />
 

@@ -8,7 +8,6 @@ import { MailIcon, MessageCircleIcon, XIcon } from "lucide-react"
 import { IssuePriorityBars, IssueStatusIcon } from "@/components/orbit/issues/issue-badges"
 import { PresenceDot } from "@/components/orbit/team/presence-dot"
 import { WorkloadBar } from "@/components/orbit/team/workload-bar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
@@ -37,22 +36,44 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 function PanelBody({ member }: { member: EnrichedTeamMember }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-      <div className="flex items-start gap-4">
-        <div className="relative shrink-0">
-          <Avatar className="size-14 ring-0">
-            <AvatarImage src={member.avatarUrl} alt="" />
-            <AvatarFallback className="text-sm font-semibold">
-              {memberInitials(member.name)}
-            </AvatarFallback>
-          </Avatar>
-          <PresenceDot presence={member.presence} ringClassName="ring-popover" />
+      <div className="border-b border-border/60 pb-6">
+        <div className="flex items-start gap-5">
+          <div className="relative shrink-0">
+            <div className="size-36 overflow-hidden rounded-lg bg-muted sm:size-40">
+              {member.avatarUrl ? (
+                <img
+                  src={member.avatarUrl}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center text-3xl font-semibold text-muted-foreground">
+                  {memberInitials(member.name)}
+                </div>
+              )}
+            </div>
+            <PresenceDot
+              presence={member.presence}
+              ringClassName="ring-popover"
+              className="bottom-2 right-2 size-3.5"
+            />
+          </div>
+          <div className="min-w-0 flex-1 pt-1">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+              {member.name}
+            </h2>
+            <p className="mt-0.5 text-sm font-medium text-foreground/85">{member.role}</p>
+            <p className="mt-1.5 text-sm text-muted-foreground">{member.email}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {presenceLabel(member.presence)}
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold text-foreground">{member.name}</h2>
-          <p className="text-sm text-muted-foreground">{member.role}</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">{member.email}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{presenceLabel(member.presence)}</p>
-        </div>
+        {member.bio ? (
+          <p className="mt-5 text-[0.9375rem] leading-relaxed text-foreground/90">
+            {member.bio}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-6">
@@ -165,9 +186,9 @@ export function TeamDetailPanel({
         if (!next) onClose()
       }}
       modal={false}
-      disablePointerDismissal
     >
       <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-40 bg-transparent" />
         <Dialog.Popup
           className={cn(
             "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col overflow-hidden",

@@ -107,11 +107,15 @@ export function NewIssueDialog({
   onOpenChange,
   onCreate,
   initialStatus = "todo",
+  initialProjectSlug,
+  initialAssigneeId,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreate: (values: NewIssueValues) => void
   initialStatus?: WorkItemStatus
+  initialProjectSlug?: string | null
+  initialAssigneeId?: string | null
 }) {
   const [title, setTitle] = React.useState("")
   const [description, setDescription] = React.useState("")
@@ -128,11 +132,20 @@ export function NewIssueDialog({
       setDescription("")
       setStatus(initialStatus)
       setPriority("medium")
-      setAssigneeId(CURRENT_USER.id)
-      setProjectSlug(issueProjects[0]?.slug ?? "")
+      setAssigneeId(
+        initialAssigneeId && getAssignee(initialAssigneeId)
+          ? initialAssigneeId
+          : CURRENT_USER.id
+      )
+      const defaultProject =
+        initialProjectSlug &&
+        issueProjects.some((project) => project.slug === initialProjectSlug)
+          ? initialProjectSlug
+          : (issueProjects[0]?.slug ?? "")
+      setProjectSlug(defaultProject)
       setDueDate("")
     }
-  }, [open, initialStatus])
+  }, [open, initialStatus, initialProjectSlug, initialAssigneeId])
 
   const assignee = getAssignee(assigneeId)
   const projectTitle =

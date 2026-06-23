@@ -63,11 +63,7 @@ export function getAssignee(id: string): IssueAssignee | undefined {
   return assigneeById.get(id)
 }
 
-const projectTitleBySlug = new Map(projectsSeed.map((p) => [p.slug, p.title]))
-
-export function getProjectTitle(slug: string): string {
-  return projectTitleBySlug.get(slug) ?? slug
-}
+export { getProjectTitle } from "@/lib/team-data"
 
 /** Project options for filters / the new-issue form. */
 export const issueProjects = projectsSeed.map((p) => ({ slug: p.slug, title: p.title }))
@@ -357,6 +353,38 @@ export function getIssuesForAssignee(
   issues: Issue[] = issuesSeed
 ): Issue[] {
   return issues.filter((issue) => issue.assigneeId === assigneeId)
+}
+
+export type DashboardOpenIssueScope = "mine" | "team"
+
+export type DashboardOpenIssuePreview = {
+  id: string
+  assignee: string
+  description: string
+  avatarUrl: string
+}
+
+/** Top open issues for the dashboard Open Issues card (Mine vs Team preview). */
+export function getDashboardOpenIssuePreviews(
+  scope: DashboardOpenIssueScope,
+  limit = 3
+): DashboardOpenIssuePreview[] {
+  return issuesSeed
+    .filter((issue) => {
+      if (issue.status === "completed") return false
+      if (scope === "mine") return issue.assigneeId === CURRENT_USER.id
+      return issue.assigneeId !== CURRENT_USER.id
+    })
+    .slice(0, limit)
+    .map((issue) => {
+      const assignee = getAssignee(issue.assigneeId)!
+      return {
+        id: issue.id,
+        assignee: assignee.name,
+        description: issue.title,
+        avatarUrl: assignee.avatarUrl,
+      }
+    })
 }
 
 /** Derived: an issue is overdue when it's not completed and past its due date. */

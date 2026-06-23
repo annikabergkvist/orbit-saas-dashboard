@@ -3,17 +3,19 @@
 import * as React from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
-import type { IssueStatus } from "@/lib/status"
+import { loadPersistedIssues, subscribeStore } from "@/lib/client-store"
+import { isIssueOverdue, issuesSeed } from "@/lib/issues-data"
+import type { WorkItemStatus } from "@/lib/status"
 
 type Slice = {
-  key: IssueStatus
+  key: WorkItemStatus | "overdue"
   label: string
   value: number
   color: string
 }
 
 /** Status → chart segment CSS tokens (no default Recharts palette). */
-const statusColors: Record<IssueStatus, string> = {
+const statusColors: Record<WorkItemStatus | "overdue", string> = {
   todo: "var(--status-chart-todo)",
   in_progress: "var(--status-chart-in-progress)",
   in_review: "var(--status-chart-in-review)",
@@ -21,29 +23,30 @@ const statusColors: Record<IssueStatus, string> = {
   overdue: "var(--status-chart-overdue)",
 }
 
-// Fixed demo data to match the reference screenshot.
-const slices: Slice[] = [
-  { key: "todo", label: "To Do", value: 12, color: statusColors.todo },
-  {
-    key: "in_progress",
-    label: "In Progress",
-    value: 8,
-    color: statusColors.in_progress,
-  },
-  {
-    key: "in_review",
-    label: "In Review",
-    value: 5,
-    color: statusColors.in_review,
-  },
-  {
-    key: "completed",
-    label: "Completed",
-    value: 15,
-    color: statusColors.completed,
-  },
-  { key: "overdue", label: "Overdue", value: 3, color: statusColors.overdue },
+const sliceOrder: { key: WorkItemStatus | "overdue"; label: string }[] = [
+  { key: "todo", label: "To Do" },
+  { key: "in_progress", label: "In Progress" },
+  { key: "in_review", label: "In Review" },
+  { key: "completed", label: "Completed" },
+  { key: "overdue", label: "Overdue" },
 ]
+
+function buildSlicesFromIssues(): Slice[] {
+  const issues = loadPersistedIssues(issuesSeed)
+  const counts: Record<string, number> = {}
+  for (const issue of issues) {
+    if (isIssueOverdue(issue)) {
+      counts.overdue = (counts.overdue ?? 0) + 1
+    }
+    counts[issue.status] = (counts[issue.status] ?? 0) + 1
+  }
+  return sliceOrder.map(({ key, label }) => ({
+    key,
+    label,
+    value: counts[key] ?? 0,
+    color: statusColors[key],
+  }))
+}
 
 function LegendDot({ color }: { color: string }) {
   return (
@@ -57,19 +60,23 @@ function LegendDot({ color }: { color: string }) {
 
 export function IssuesByStatusDonut() {
   const [mounted, setMounted] = React.useState(false)
-
-  const total = React.useMemo(() => slices.reduce((sum, s) => sum + s.value, 0), [])
-  const completed = React.useMemo(
-    () => slices.find((s) => s.key === "completed")?.value ?? 0,
-    []
-  )
-  const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0
+  const [slices, setSlices] = React.useState<Slice[]>(() => buildSlicesFromIssues())
 
   React.useEffect(() => {
-    // Avoid ResponsiveContainer warnings during static prerender.
     const id = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(id)
   }, [])
+
+  React.useEffect(() => {
+    return subscribeStore(() => setSlices(buildSlicesFromIssues()))
+  }, [])
+
+  const total = React.useMemo(() => slices.reduce((sum, s) => sum + s.value, 0), [slices])
+  const completed = React.useMemo(
+    () => slices.find((s) => s.key === "completed")?.value ?? 0,
+    [slices]
+  )
+  const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   const legendRows = [
     slices.filter((s) => s.key === "in_progress" || s.key === "completed"),

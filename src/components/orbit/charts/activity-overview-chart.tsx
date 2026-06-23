@@ -113,7 +113,7 @@ function HighlightDot({
   )
 }
 
-export function ActivityOverviewChart() {
+export function ActivityOverviewChart({ embedded = false }: { embedded?: boolean }) {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -210,24 +210,26 @@ export function ActivityOverviewChart() {
         )}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-foreground/8 pt-3">
-        {bottomNav.map(({ icon: Icon, label, active }) => (
-          <button
-            key={label}
-            type="button"
-            aria-label={label}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "inline-flex size-9 items-center justify-center rounded-lg transition-colors",
-              active
-                ? "text-[var(--activity-created)]"
-                : "text-muted-foreground/70 hover:bg-muted/40 hover:text-muted-foreground"
-            )}
-          >
-            <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.75} />
-          </button>
-        ))}
-      </div>
+      {!embedded ? (
+        <div className="mt-3 flex items-center justify-between border-t border-foreground/8 pt-3">
+          {bottomNav.map(({ icon: Icon, label, active }) => (
+            <button
+              key={label}
+              type="button"
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "inline-flex size-9 items-center justify-center rounded-lg transition-colors",
+                active
+                  ? "text-[var(--activity-created)]"
+                  : "text-muted-foreground/70 hover:bg-muted/40 hover:text-muted-foreground"
+              )}
+            >
+              <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.75} />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

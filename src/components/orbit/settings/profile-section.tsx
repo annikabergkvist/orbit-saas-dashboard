@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { setUserProfilePatch, subscribeStore } from "@/lib/client-store"
 import { getCurrentUser } from "@/lib/team-data"
 
 function memberInitials(name: string) {
@@ -31,6 +32,16 @@ export function ProfileSection() {
   const [saved, setSaved] = React.useState(false)
 
   React.useEffect(() => {
+    return subscribeStore(() => {
+      const user = getCurrentUser()
+      setName(user.name)
+      setRole(user.role)
+      setBio(user.bio ?? "")
+      setAvatarUrl(user.avatarUrl)
+    })
+  }, [])
+
+  React.useEffect(() => {
     if (!saved) return
     const timer = window.setTimeout(() => setSaved(false), 2000)
     return () => window.clearTimeout(timer)
@@ -47,8 +58,7 @@ export function ProfileSection() {
 
   function handleSave(event: React.FormEvent) {
     event.preventDefault()
-    // NOTE: Profile edits are held in local state for portfolio scope.
-    // In production this would PATCH /api/user/profile and sync team roster from the server.
+    setUserProfilePatch({ name, role, bio, avatarUrl })
     setSaved(true)
   }
 

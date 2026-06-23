@@ -1,10 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowUpRightIcon, CalendarIcon } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -119,26 +118,10 @@ export function ProjectTimelineCard({ className }: { className?: string }) {
           Timeline
         </CardTitle>
         <CardAction>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-muted/40 px-3 text-xs font-medium text-muted-foreground">
-              <CalendarIcon className="size-3.5 shrink-0" strokeWidth={1.75} />
-              {RANGE_LABEL}
-            </span>
-            <Link
-              href="/projects"
-              aria-label="Open projects"
-              className={cn(
-                buttonVariants({
-                  variant: "outline",
-                  size: "icon-lg",
-                  className:
-                    "size-9 shrink-0 rounded-full border-border bg-muted/50 text-foreground shadow-none hover:bg-muted",
-                })
-              )}
-            >
-              <ArrowUpRightIcon className="size-[18px]" strokeWidth={1.75} />
-            </Link>
-          </div>
+          <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-muted/40 px-3 text-xs font-medium text-muted-foreground">
+            <CalendarIcon className="size-3.5 shrink-0" strokeWidth={1.75} />
+            {RANGE_LABEL}
+          </span>
         </CardAction>
       </CardHeader>
 

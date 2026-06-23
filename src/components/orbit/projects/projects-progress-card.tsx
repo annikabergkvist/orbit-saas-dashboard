@@ -3,13 +3,12 @@
 import * as React from "react"
 import Link from "next/link"
 import {
-  ArrowUpRightIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react"
 
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -174,20 +173,6 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link
-              href="/projects"
-              aria-label="Open projects"
-              className={cn(
-                buttonVariants({
-                  variant: "outline",
-                  size: "icon-lg",
-                  className:
-                    "size-9 shrink-0 -translate-y-1 rounded-full border-border bg-muted/50 text-foreground shadow-none hover:bg-muted",
-                })
-              )}
-            >
-              <ArrowUpRightIcon className="size-[18px]" strokeWidth={1.75} />
-            </Link>
           </div>
         </CardAction>
       </CardHeader>

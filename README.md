@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Orbit
 
-## Getting Started
+**Orbit** is a B2B project-tracking dashboard demo for product and engineering teams. It showcases a glass UI, dark mode, and realistic workflows across projects, issues, team, and messaging — built as a portfolio piece with seed data and browser-local persistence.
 
-First, run the development server:
+## Stack
+
+- [Next.js 16](https://nextjs.org) (App Router)
+- React 19, TypeScript, Tailwind CSS
+- [shadcn/ui](https://ui.shadcn.com) (Base UI flavor)
+- Recharts, dnd-kit
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000/login](http://localhost:3000/login) — use any password to sign in (demo auth).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## App areas
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Description |
+|-------|-------------|
+| `/` | Dashboard — KPIs, activity chart, issues by status, meetings, tasks |
+| `/projects` | Project overview with filters |
+| `/projects/[slug]` | Board, list, calendar, files, overview |
+| `/issues` | Issue backlog with filters, bulk actions, detail panel |
+| `/team` | Team roster, workload, profile bios |
+| `/messages` | Team DMs tied to work items |
+| `/settings` | Profile, account, notifications, appearance, integrations |
 
-## Learn More
+## Demo persistence
 
-To learn more about Next.js, take a look at the following resources:
+Changes are saved to `localStorage` (issues, board tasks, profile, integrations, notifications, messages). Connect **Google Calendar** under Settings → Integrations to unlock **My Meetings** on the dashboard.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Data model notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Issues** (`issues-data.ts`) — cross-project backlog used on `/issues` and linked from project list views.
+- **Board tasks** (`projects-data.ts`) — per-project kanban cards; drag-and-drop persists per project slug.
+- **Team** (`team-data.ts`) — single roster for assignees, settings profile, and team pages.
 
-## Deploy on Vercel
+In production these would be unified via a backend API; here they are intentionally separate demo datasets with list views bridging both on project pages.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Portfolio demo — not licensed for production use.

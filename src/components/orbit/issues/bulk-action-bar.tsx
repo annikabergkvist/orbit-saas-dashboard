@@ -39,7 +39,7 @@ function MenuButton({ label }: { label: string }) {
     <Button
       type="button"
       variant="ghost"
-      className="h-8 gap-1.5 px-2.5 font-normal text-foreground hover:bg-muted"
+      className="h-8 gap-1.5 px-2.5 font-normal text-foreground hover:bg-muted/40"
     >
       {label}
       <ChevronDownIcon className="size-3.5 opacity-60" strokeWidth={2} />

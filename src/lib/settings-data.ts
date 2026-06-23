@@ -22,6 +22,8 @@ export const settingsTabs: {
   { id: "integrations", label: "Integrations" },
 ]
 
+export const INTEGRATIONS_SETTINGS_HREF = "/settings?tab=integrations"
+
 export type AuthProviderId = "github" | "google" | "figma"
 
 export type ConnectedAccount = {

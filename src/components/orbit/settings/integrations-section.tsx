@@ -1,26 +1,18 @@
 "use client"
 
-import * as React from "react"
-
 import { IntegrationIcon } from "@/components/orbit/settings/integration-icons"
 import { SettingsSection } from "@/components/orbit/settings/settings-section"
 import { Button } from "@/components/ui/button"
+import { useStoreValue } from "@/hooks/use-orbit-store"
 import { cn } from "@/lib/utils"
+import { getIntegrationState, setIntegrationState } from "@/lib/client-store"
 import { integrations, type IntegrationId } from "@/lib/settings-data"
 
-function buildConnectionState() {
-  return Object.fromEntries(
-    integrations.map((item) => [item.id, item.connected])
-  ) as Record<IntegrationId, boolean>
-}
-
 export function IntegrationsSection() {
-  const [connected, setConnected] = React.useState(buildConnectionState)
+  const connected = useStoreValue(getIntegrationState)
 
   function toggleConnection(id: IntegrationId) {
-    // NOTE: Integration OAuth flows are stubbed for portfolio scope.
-    // In production these would open OAuth and update connection state from the server.
-    setConnected((current) => ({ ...current, [id]: !current[id] }))
+    setIntegrationState({ ...connected, [id]: !connected[id] })
   }
 
   return (

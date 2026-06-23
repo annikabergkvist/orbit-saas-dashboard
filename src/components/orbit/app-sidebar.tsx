@@ -9,49 +9,29 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import {
-
   HouseIcon,
-
   LayoutGridIcon,
-
   MessageCircleIcon,
-
   SquareCheckIcon,
-
   UsersIcon,
-
   SettingsIcon,
-
   PlusIcon,
-
   type LucideIcon,
-
 } from "lucide-react"
 
-
-
 import { Button } from "@/components/ui/button"
-
 import {
-
   Sidebar,
-
   SidebarContent,
-
   SidebarFooter,
-
   SidebarGroup,
-
   SidebarHeader,
-
   SidebarMenu,
-
   SidebarMenuButton,
-
   SidebarMenuItem,
-
-  SidebarSeparator,
-
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 import { cn } from "@/lib/utils"
@@ -86,7 +66,19 @@ const navItems: {
 
 ]
 
+function SidebarCollapseButton({ className }: { className?: string }) {
+  const { state } = useSidebar()
 
+  return (
+    <SidebarTrigger
+      className={cn(
+        "size-8 shrink-0 rounded-lg text-muted-foreground hover:bg-white/20 hover:text-foreground hover:backdrop-blur-sm",
+        className
+      )}
+      aria-label={state === "collapsed" ? "Expand sidebar" : "Collapse sidebar"}
+    />
+  )
+}
 
 export function OrbitAppSidebar() {
 
@@ -108,37 +100,28 @@ export function OrbitAppSidebar() {
 
     >
 
-      <SidebarHeader className="gap-5 px-7 pt-7 pb-5">
+      <SidebarRail />
 
-        <Link
-          href="/"
-          className="inline-flex min-w-0 items-center rounded-lg outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50"
-          aria-label="Orbit — go to dashboard"
-        >
-          <div className="truncate text-md font-semibold group-data-[collapsible=icon]:hidden">
-            Orbit
-          </div>
-          <span
-            className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary group-data-[collapsible=icon]:flex"
-            aria-hidden
+      <SidebarHeader className="gap-5 px-7 pt-7 pb-5 group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:pt-4 group-data-[collapsible=icon]:pb-8">
+        <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
+          <Link
+            href="/"
+            className="inline-flex min-w-0 items-center rounded-lg outline-none transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 group-data-[collapsible=icon]:hidden"
+            aria-label="Orbit — go to dashboard"
           >
-            O
-          </span>
-        </Link>
-
+            <div className="truncate text-md font-semibold">
+              Orbit
+            </div>
+          </Link>
+          <SidebarCollapseButton />
+        </div>
       </SidebarHeader>
-
-
-
-      <SidebarSeparator className="my-2 data-horizontal:w-[calc(100%-3rem)] bg-white/25" />
-
-
 
       <SidebarContent>
 
-        <SidebarGroup className="px-3 py-1">
+        <SidebarGroup className="px-3 py-1 group-data-[collapsible=icon]:px-3">
 
-          <SidebarMenu className="gap-0">
+          <SidebarMenu className="gap-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-3">
 
             {navItems.map((item) => {
 
@@ -154,7 +137,7 @@ export function OrbitAppSidebar() {
 
               return (
 
-                <SidebarMenuItem key={item.href}>
+                <SidebarMenuItem key={item.href} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
 
                   <SidebarMenuButton
 
@@ -164,7 +147,7 @@ export function OrbitAppSidebar() {
 
                     size="lg"
 
-                    className="bg-transparent px-2 hover:bg-transparent active:bg-transparent data-active:bg-transparent data-active:font-semibold"
+                    className="bg-transparent px-2 hover:bg-transparent active:bg-transparent data-active:bg-transparent data-active:font-semibold group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!w-9 group-data-[collapsible=icon]:!min-w-9 group-data-[collapsible=icon]:!p-0"
 
                     render={
 
@@ -175,6 +158,8 @@ export function OrbitAppSidebar() {
                           className={cn(
 
                             "flex w-full min-w-0 items-center gap-2 rounded-xl px-3 py-2 transition-colors",
+
+                            "group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:min-w-9 group-data-[collapsible=icon]:shrink-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
 
                             "group-hover/menu-button:bg-white/20 group-hover/menu-button:backdrop-blur-sm group-hover/menu-button:text-foreground",
 
@@ -208,7 +193,7 @@ export function OrbitAppSidebar() {
 
                           )}
 
-                          <span className="min-w-0 flex-1 truncate">{item.title}</span>
+                          <span className="min-w-0 flex-1 truncate group-data-[collapsible=icon]:hidden">{item.title}</span>
 
                           {showUnread ? (
 
@@ -240,13 +225,7 @@ export function OrbitAppSidebar() {
 
       </SidebarContent>
 
-
-
-      <SidebarSeparator className="my-2 data-horizontal:w-[calc(100%-3rem)] bg-white/25" />
-
-
-
-      <SidebarFooter className="px-5 pt-2 pb-5">
+      <SidebarFooter className="px-5 pt-2 pb-5 group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:pt-4 group-data-[collapsible=icon]:pb-4">
 
         <Button
 

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { clearAllOrbitData, setAuthSession } from "@/lib/client-store"
 
 type DeleteAccountDialogProps = {
   open: boolean
@@ -41,10 +42,13 @@ export function DeleteAccountDialog({
   function handleDelete(event: React.FormEvent) {
     event.preventDefault()
     if (!matches) return
-    // NOTE: Account deletion is disabled for portfolio scope.
-    // In production this would verify credentials, revoke sessions, and queue account removal.
+    clearAllOrbitData()
+    setAuthSession(null)
     setSubmitted(true)
-    window.setTimeout(() => onOpenChange(false), 1200)
+    window.setTimeout(() => {
+      onOpenChange(false)
+      window.location.href = "/login"
+    }, 900)
   }
 
   return (
@@ -90,7 +94,7 @@ export function DeleteAccountDialog({
               className="h-9"
               disabled={!matches || submitted}
             >
-              {submitted ? "Disabled in demo" : "Delete account"}
+              {submitted ? "Account deleted" : "Delete account"}
             </Button>
           </DialogFooter>
         </form>

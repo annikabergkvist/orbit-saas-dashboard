@@ -1,30 +1,22 @@
 "use client"
 
-import * as React from "react"
-
 import {
   SettingsSection,
   SettingsToggleRow,
 } from "@/components/orbit/settings/settings-section"
 import { Switch } from "@/components/ui/switch"
+import { useStoreValue } from "@/hooks/use-orbit-store"
+import { getNotificationPrefs, setNotificationPrefs } from "@/lib/client-store"
 import {
   notificationPreferences,
   type NotificationPreferenceKey,
 } from "@/lib/settings-data"
 
-function buildDefaultPrefs() {
-  return Object.fromEntries(
-    notificationPreferences.map((pref) => [pref.id, pref.defaultEnabled])
-  ) as Record<NotificationPreferenceKey, boolean>
-}
-
 export function NotificationsSection() {
-  const [prefs, setPrefs] = React.useState(buildDefaultPrefs)
+  const prefs = useStoreValue(getNotificationPrefs)
 
   function setPref(id: NotificationPreferenceKey, enabled: boolean) {
-    // NOTE: Notification preferences are local UI state for portfolio scope.
-    // In production these would persist per user and filter delivery channels.
-    setPrefs((current) => ({ ...current, [id]: enabled }))
+    setNotificationPrefs({ ...prefs, [id]: enabled })
   }
 
   return (

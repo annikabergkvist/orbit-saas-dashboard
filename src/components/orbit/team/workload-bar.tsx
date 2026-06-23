@@ -1,3 +1,7 @@
+"use client"
+
+import * as React from "react"
+
 import { cn } from "@/lib/utils"
 import type { WorkloadLevel } from "@/lib/team-data"
 import { workloadLabel } from "@/lib/team-data"
@@ -16,13 +20,23 @@ export function WorkloadBar({
   activeCount,
   level,
   className,
+  animateDelayMs = 0,
 }: {
   activeCount: number
   level: WorkloadLevel
   className?: string
+  /** Stagger fill animation on mount (e.g. per card index × 60ms). */
+  animateDelayMs?: number
 }) {
+  const [animate, setAnimate] = React.useState(false)
+
   const width =
     activeCount === 0 ? 0 : Math.max(8, Math.min(100, (activeCount / WORKLOAD_CAP) * 100))
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => setAnimate(true), animateDelayMs)
+    return () => window.clearTimeout(timer)
+  }, [animateDelayMs, activeCount, level])
 
   return (
     <div className={cn("space-y-1.5", className)}>
@@ -41,8 +55,12 @@ export function WorkloadBar({
         aria-label={`${workloadLabel(level)} workload, ${activeCount} active tasks`}
       >
         <div
-          className={cn("h-full rounded-full transition-all", barColor[level])}
-          style={{ width: `${width}%` }}
+          className={cn(
+            "h-full rounded-full ease-out",
+            barColor[level],
+            animate ? "transition-[width] duration-700" : "transition-none"
+          )}
+          style={{ width: animate ? `${width}%` : "0%" }}
         />
       </div>
     </div>

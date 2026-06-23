@@ -2,14 +2,19 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import {
   ChevronDownIcon,
+  ClipboardListIcon,
   MessageCircleIcon,
   PlusIcon,
   SearchIcon,
+  UserIcon,
 } from "lucide-react"
 
+import { BioPreview } from "@/components/orbit/team/bio-preview"
 import { TeamDetailPanel } from "@/components/orbit/team/team-detail-panel"
+import { InviteMemberDialog } from "@/components/orbit/team/invite-member-dialog"
 import { PresenceDot } from "@/components/orbit/team/presence-dot"
 import { WorkloadBar } from "@/components/orbit/team/workload-bar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -23,11 +28,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { subscribeStore } from "@/lib/client-store"
 import { issueProjects, issuesSeed } from "@/lib/issues-data"
 import {
   enrichTeamMembers,
   filterTeamMembers,
-  getProjectTitle,
   teamRoleGroups,
   type EnrichedTeamMember,
   type TeamRoleGroup,
@@ -91,13 +96,18 @@ function FilterMenu({
   )
 }
 
+const quickActionClassName =
+  "size-8 border-border/80 bg-card/80 text-muted-foreground shadow-none transition-all duration-200 hover:border-border hover:bg-muted/50 hover:text-foreground hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)]"
+
 function TeamMemberCard({
   member,
   selected,
+  cardIndex,
   onSelect,
 }: {
   member: EnrichedTeamMember
   selected: boolean
+  cardIndex: number
   onSelect: () => void
 }) {
   return (
@@ -112,8 +122,10 @@ function TeamMemberCard({
         }
       }}
       className={cn(
-        "glass-subtle panel-glass-subtle flex flex-col gap-4 rounded-xl p-4",
-        "cursor-pointer",
+        "group glass-subtle panel-glass-subtle relative flex h-full flex-col gap-3 rounded-xl p-4",
+        "cursor-pointer transition-[transform,box-shadow] duration-300 ease-out",
+        "hover:-translate-y-px hover:shadow-[0_4px_18px_rgba(15,23,42,0.07)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
         selected && "ring-1 ring-primary/40"
       )}
       aria-pressed={selected}
@@ -121,61 +133,96 @@ function TeamMemberCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <div className="relative shrink-0">
-            <Avatar className="size-10 ring-0">
+            <Avatar className="size-12 ring-0">
               <AvatarImage src={member.avatarUrl} alt="" />
-              <AvatarFallback className="text-xs font-semibold">
+              <AvatarFallback className="text-sm font-semibold">
                 {memberInitials(member.name)}
               </AvatarFallback>
             </Avatar>
             <PresenceDot presence={member.presence} />
           </div>
-          <div className="min-w-0">
-            <h3 className="truncate font-semibold text-foreground">{member.name}</h3>
-            <p className="truncate text-sm text-muted-foreground">{member.role}</p>
-            <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+          <div className="min-w-0 pt-0.5">
+            <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">
+              {member.name}
+            </h3>
+            <p className="mt-0.5 truncate text-sm text-muted-foreground">{member.role}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground/80">{member.email}</p>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          nativeButton={false}
-          className="size-8 shrink-0 border-border/80 bg-card shadow-none"
-          aria-label={`Message ${member.name}`}
-          render={<Link href={`/messages?member=${member.id}`} />}
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-1",
+            "pointer-events-none opacity-0 transition-opacity duration-300",
+            "group-hover:pointer-events-auto group-hover:opacity-100",
+            "group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+          )}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
-          <MessageCircleIcon className="size-4" strokeWidth={1.75} />
-        </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className={quickActionClassName}
+            aria-label={`View ${member.name}'s profile`}
+            onClick={() => onSelect()}
+          >
+            <UserIcon className="size-4" strokeWidth={1.75} />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            nativeButton={false}
+            className={quickActionClassName}
+            aria-label={`Assign task to ${member.name}`}
+            render={<Link href={`/issues?new=1&assignee=${member.id}`} />}
+          >
+            <ClipboardListIcon className="size-4" strokeWidth={1.75} />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            nativeButton={false}
+            className={quickActionClassName}
+            aria-label={`Message ${member.name}`}
+            render={<Link href={`/messages?member=${member.id}`} />}
+          >
+            <MessageCircleIcon className="size-4" strokeWidth={1.75} />
+          </Button>
+        </div>
       </div>
 
-      <WorkloadBar activeCount={member.activeTaskCount} level={member.workload} />
+      <WorkloadBar
+        activeCount={member.activeTaskCount}
+        level={member.workload}
+        animateDelayMs={cardIndex * 70}
+      />
 
-      {member.projectSlugs.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {member.projectSlugs.map((slug) => (
-            <span
-              key={slug}
-              className="inline-flex max-w-full items-center rounded-md border border-foreground/10 bg-foreground/[0.03] px-2 py-0.5 text-xs text-muted-foreground"
-            >
-              <span className="truncate">{getProjectTitle(slug)}</span>
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">No active projects</p>
-      )}
+      <BioPreview
+        key={member.id}
+        bio={member.bio ?? ""}
+        onReadMore={onSelect}
+        className="mt-auto w-full"
+      />
     </article>
   )
 }
 
 export function TeamView() {
+  const searchParams = useSearchParams()
+  const memberParam = searchParams.get("member")
   const [search, setSearch] = React.useState("")
   const [roleGroup, setRoleGroup] = React.useState<TeamRoleGroup | null>(null)
   const [projectSlug, setProjectSlug] = React.useState<string | null>(null)
   const [selectedMemberId, setSelectedMemberId] = React.useState<string | null>(null)
+  const [inviteOpen, setInviteOpen] = React.useState(false)
+  const [storeTick, setStoreTick] = React.useState(0)
 
-  const members = React.useMemo(() => enrichTeamMembers(issuesSeed), [])
+  React.useEffect(() => subscribeStore(() => setStoreTick((tick) => tick + 1)), [])
+
+  const members = React.useMemo(() => enrichTeamMembers(issuesSeed), [storeTick])
   const filtered = React.useMemo(
     () => filterTeamMembers(members, { search, roleGroup, projectSlug }),
     [members, search, roleGroup, projectSlug]
@@ -186,21 +233,14 @@ export function TeamView() {
   if (selectedMember) lastMemberRef.current = selectedMember
   const panelMember = selectedMember ?? lastMemberRef.current
 
+  React.useEffect(() => {
+    if (memberParam && members.some((member) => member.id === memberParam)) {
+      setSelectedMemberId(memberParam)
+    }
+  }, [memberParam, members])
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-6 px-6 py-8 md:px-10 lg:px-16">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-baseline gap-2.5">
-          <h1 className="text-xl font-semibold text-foreground">Team</h1>
-          <span className="text-sm text-muted-foreground">
-            {members.length} members
-          </span>
-        </div>
-        <Button type="button" variant="outline" className="h-9 gap-1.5 px-4">
-          <PlusIcon className="size-4" strokeWidth={2} />
-          Invite Member
-        </Button>
-      </div>
-
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-0 flex-1 sm:max-w-xs">
           <SearchIcon
@@ -229,6 +269,15 @@ export function TeamView() {
           options={issueProjects.map((p) => ({ value: p.slug, label: p.title }))}
           onChange={setProjectSlug}
         />
+        <Button
+          type="button"
+          variant="outline"
+          className="ml-auto h-9 gap-1.5 px-4"
+          onClick={() => setInviteOpen(true)}
+        >
+          <PlusIcon className="size-4" strokeWidth={2} />
+          Invite Member
+        </Button>
       </div>
 
       {filtered.length === 0 ? (
@@ -236,11 +285,12 @@ export function TeamView() {
           <p className="text-sm text-muted-foreground">No team members match your filters.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {filtered.map((member) => (
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {filtered.map((member, index) => (
             <TeamMemberCard
               key={member.id}
               member={member}
+              cardIndex={index}
               selected={selectedMemberId === member.id}
               onSelect={() => setSelectedMemberId(member.id)}
             />
@@ -253,6 +303,8 @@ export function TeamView() {
         open={selectedMemberId !== null}
         onClose={() => setSelectedMemberId(null)}
       />
+
+      <InviteMemberDialog open={inviteOpen} onOpenChange={setInviteOpen} />
     </div>
   )
 }

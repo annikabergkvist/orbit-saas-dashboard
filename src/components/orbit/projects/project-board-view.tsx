@@ -41,6 +41,11 @@ import {
 
 import { ClaritySliderLineIcon } from "@/components/icons/clarity-slider-line-icon"
 import {
+  ProjectCalendarView,
+  ProjectFilesView,
+  ProjectListView,
+} from "@/components/orbit/projects/project-extra-views"
+import {
   IssuePriorityBadge,
   IssueStatusBadge,
   TaskTagBadge,
@@ -52,6 +57,7 @@ import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { loadBoardTasks, saveBoardTasks } from "@/lib/client-store"
 import {
   boardColumns,
   getBoardForProject,
@@ -318,14 +324,14 @@ function KanbanColumn({
           <div className="ml-auto flex items-center gap-0.5">
             <button
               type="button"
-              className="rounded-md p-1 text-[#9aa3b2] transition-colors hover:bg-muted hover:text-foreground"
+              className="rounded-md p-1 text-[#9aa3b2] transition-colors hover:text-foreground"
               aria-label={`${col.label} column menu`}
             >
               <MoreHorizontalIcon className="size-4" />
             </button>
             <button
               type="button"
-              className="rounded-md p-1 text-[#9aa3b2] transition-colors hover:bg-muted hover:text-foreground"
+              className="rounded-md p-1 text-[#9aa3b2] transition-colors hover:text-foreground"
               aria-label={`Add task to ${col.label}`}
             >
               <PlusIcon className="size-4" />
@@ -344,8 +350,13 @@ function KanbanColumn({
   )
 }
 
-function KanbanBoard({ board }: { board: ProjectBoard }) {
-  const [tasks, setTasks] = React.useState(board.tasks)
+function KanbanBoard({
+  tasks,
+  setTasks,
+}: {
+  tasks: BoardTask[]
+  setTasks: React.Dispatch<React.SetStateAction<BoardTask[]>>
+}) {
   const [activeId, setActiveId] = React.useState<string | null>(null)
 
   const tasksByColumn = React.useMemo(() => groupTasksByColumn(tasks), [tasks])
@@ -451,16 +462,6 @@ function KanbanBoard({ board }: { board: ProjectBoard }) {
   )
 }
 
-function PlaceholderPanel({ title }: { title: string }) {
-  return (
-    <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border/80 bg-card px-6 py-16">
-      <p className="text-center text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">{title}</span> view is coming soon.
-      </p>
-    </div>
-  )
-}
-
 function ProjectOverviewPanel({ project }: { project: ProjectSummary }) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
@@ -494,11 +495,15 @@ function ProjectDetailHeader({
   visibleTeam,
   view,
   onViewChange,
+  onShare,
+  onNewTask,
 }: {
   board: ProjectBoard
   visibleTeam: ProjectSummary["team"]
   view: ProjectView
   onViewChange: (view: ProjectView) => void
+  onShare: () => void
+  onNewTask: () => void
 }) {
   const avatarRing = "border-2 border-[var(--dashboard-mesh-base)] dark:border-background"
 
@@ -556,11 +561,12 @@ function ProjectDetailHeader({
               type="button"
               variant="outline"
               className="h-9 gap-2 rounded-lg border-border bg-card px-4 text-foreground shadow-none hover:bg-muted/40"
+              onClick={onShare}
             >
               <UsersIcon className="size-4" strokeWidth={1.75} />
               Share
             </Button>
-            <Button type="button" className="h-9 gap-1.5 rounded-lg px-4">
+            <Button type="button" className="h-9 gap-1.5 rounded-lg px-4" onClick={onNewTask}>
               New Task
               <PlusIcon className="size-4" strokeWidth={2} />
             </Button>
@@ -616,8 +622,38 @@ function ProjectDetailHeader({
 export function ProjectBoardView({ project }: { project: ProjectSummary }) {
   const board = React.useMemo(() => getBoardForProject(project), [project])
   const [view, setView] = React.useState<ProjectView>("board")
+  const [tasks, setTasks] = React.useState<BoardTask[]>(() =>
+    loadBoardTasks(project.slug, board.tasks)
+  )
+  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false)
+  const [shareNotice, setShareNotice] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    setTasks(loadBoardTasks(project.slug, board.tasks))
+  }, [project.slug, board.tasks])
+
+  React.useEffect(() => {
+    saveBoardTasks(project.slug, tasks)
+  }, [project.slug, tasks])
+
+  React.useEffect(() => {
+    if (!shareNotice) return
+    const timer = window.setTimeout(() => setShareNotice(null), 2500)
+    return () => window.clearTimeout(timer)
+  }, [shareNotice])
 
   const visibleTeam = project.team.slice(0, 4)
+
+  function handleShare() {
+    const url = `${window.location.origin}/projects/${project.slug}`
+    void navigator.clipboard.writeText(url).then(() => {
+      setShareNotice("Project link copied to clipboard.")
+    })
+  }
+
+  function handleNewTask() {
+    window.location.href = `/issues?new=1&project=${project.slug}`
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -628,6 +664,9 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
         >
           ← Projects
         </Link>
+        {shareNotice ? (
+          <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">{shareNotice}</p>
+        ) : null}
       </div>
 
       <ProjectDetailHeader
@@ -635,6 +674,8 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
         visibleTeam={visibleTeam}
         view={view}
         onViewChange={setView}
+        onShare={handleShare}
+        onNewTask={handleNewTask}
       />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pb-6 md:px-10 lg:px-16">
@@ -646,19 +687,32 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
             <Button
               type="button"
               variant="outline"
-              className="h-9 gap-2 rounded-lg border-border/80 bg-card px-3 font-normal shadow-none"
+              className={cn(
+                "h-9 gap-2 rounded-lg border-border/80 bg-card px-3 font-normal shadow-none",
+                showAdvancedFilters && "border-primary/40 bg-primary/5"
+              )}
+              onClick={() => setShowAdvancedFilters((current) => !current)}
             >
               <ClaritySliderLineIcon className="size-4" />
               Advance Filters
             </Button>
+            {showAdvancedFilters ? (
+              <p className="w-full text-xs text-muted-foreground">
+                Filter by tag, sprint, and custom fields — demo UI; board data is unchanged.
+              </p>
+            ) : null}
           </div>
         ) : null}
 
-        {view === "board" ? <KanbanBoard key={project.slug} board={board} /> : null}
+        {view === "board" ? <KanbanBoard tasks={tasks} setTasks={setTasks} /> : null}
         {view === "overview" ? <ProjectOverviewPanel project={project} /> : null}
-        {view === "list" ? <PlaceholderPanel title="List" /> : null}
-        {view === "calendar" ? <PlaceholderPanel title="Calendar" /> : null}
-        {view === "files" ? <PlaceholderPanel title="Files" /> : null}
+        {view === "list" ? (
+          <ProjectListView projectSlug={project.slug} tasks={tasks} />
+        ) : null}
+        {view === "calendar" ? (
+          <ProjectCalendarView projectSlug={project.slug} tasks={tasks} />
+        ) : null}
+        {view === "files" ? <ProjectFilesView tasks={tasks} /> : null}
       </div>
     </div>
   )

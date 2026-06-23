@@ -92,7 +92,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "design",
     email: "annika@orbit.app",
     avatarUrl: "/avatars/annika.png?v=2",
-    bio: "Design engineer focused on the space between design and engineering — building interfaces that feel effortless.",
+    bio: "Design engineer. I live in the gap between Figma and production — usually with too many tabs open and strong opinions about spacing.",
     githubUsername: "annikabergkvist",
     figmaUsername: "annikabergkvist",
     presence: "online",
@@ -104,6 +104,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "design",
     email: "sara.chen@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg",
+    bio: "Product designer. Making things pretty until someone asks for a dark mode variant. Coffee-powered, grid-obsessed.",
     presence: "away",
   },
   {
@@ -113,6 +114,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "engineering",
     email: "alex.johnson@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/22.jpg",
+    bio: "Frontend dev. I turn designs into pixels and occasionally into bugs. Pretty sure that's a feature.",
     presence: "online",
   },
   {
@@ -122,6 +124,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "design",
     email: "maria.lopez@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/33.jpg",
+    bio: "UX researcher. Professional opinion haver. Will silently watch you struggle with a button for science.",
     presence: "online",
   },
   {
@@ -131,6 +134,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "engineering",
     email: "priya.singh@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/28.jpg",
+    bio: "Backend engineer. If it's broken, it's probably the frontend. (It's never the frontend.)",
     presence: "offline",
   },
   {
@@ -140,6 +144,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "engineering",
     email: "chris.morgan@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg",
+    bio: "Platform engineer. I keep the lights on and the deploys boring. kubectl is my love language.",
     presence: "away",
   },
   {
@@ -149,6 +154,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "qa",
     email: "ryan.cooper@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+    bio: "QA engineer. I break things professionally so you don't have to. You're welcome.",
     presence: "online",
   },
   {
@@ -158,6 +164,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "design",
     email: "jordan.lee@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/45.jpg",
+    bio: "Design lead. Here to elevate the craft and ruin your weekend with feedback. No notes is suspicious.",
     presence: "online",
   },
   {
@@ -167,6 +174,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "product",
     email: "emma.wilson@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/17.jpg",
+    bio: "Product analyst. I speak spreadsheet fluently and turn chaos into a slide deck. Ask me about the funnel.",
     presence: "offline",
   },
   {
@@ -176,6 +184,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "engineering",
     email: "david.park@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/36.jpg",
+    bio: "Data engineer. Pipelines by day, existential dread about schema drift by night.",
     presence: "offline",
   },
   {
@@ -185,6 +194,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "product",
     email: "nina.brooks@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+    bio: "Technical writer. I write the docs nobody reads until something breaks at 4pm on a Friday.",
     presence: "offline",
   },
   {
@@ -194,6 +204,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "product",
     email: "tom.rivera@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/67.jpg",
+    bio: "API docs specialist. REST in peace. GraphQL in progress. Swagger in my heart.",
     presence: "offline",
   },
   {
@@ -203,6 +214,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "engineering",
     email: "lisa.zhang@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/68.jpg",
+    bio: "Performance engineer. I make things fast — mostly by telling other people their code is slow.",
     presence: "online",
   },
   {
@@ -212,6 +224,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "engineering",
     email: "james.oneil@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/men/11.jpg",
+    bio: "Frontend engineer. CSS is my personality. Yes, I have opinions about your hover states.",
     presence: "away",
   },
   {
@@ -221,6 +234,7 @@ export const teamMembersSeed: TeamMember[] = [
     roleGroup: "design",
     email: "olivia.hart@orbit.app",
     avatarUrl: "https://randomuser.me/api/portraits/women/21.jpg",
+    bio: "UX designer. Wireframes, user flows, and the occasional passive-aggressive sticky note. Design with empathy (and constraints).",
     presence: "online",
   },
 ]
@@ -271,13 +285,34 @@ export function getTeamMember(id: string): TeamMember | undefined {
   return memberById.get(id)
 }
 
+function readProfilePatch(): Partial<Pick<TeamMember, "name" | "role" | "bio" | "avatarUrl">> {
+  if (typeof window === "undefined") return {}
+  try {
+    const raw = window.localStorage.getItem("orbit:user-profile")
+    if (!raw) return {}
+    return JSON.parse(raw) as Partial<Pick<TeamMember, "name" | "role" | "bio" | "avatarUrl">>
+  } catch {
+    return {}
+  }
+}
+
+function withProfilePatch(member: TeamMember): TeamMember {
+  if (member.id !== CURRENT_USER_ID) return member
+  return { ...member, ...readProfilePatch() }
+}
+
+/** Roster with any locally saved profile edits for the signed-in user. */
+export function getTeamMembersRoster(): TeamMember[] {
+  return teamMembersSeed.map(withProfilePatch)
+}
+
 /** Signed-in user — single source for shell header, Settings profile, and issue identity. */
 export function getCurrentUser(): TeamMember {
   const member = getTeamMember(CURRENT_USER_ID)
   if (!member) {
     throw new Error(`Current user "${CURRENT_USER_ID}" is missing from teamMembersSeed`)
   }
-  return member
+  return withProfilePatch(member)
 }
 
 export function getProjectTitle(slug: string): string {
@@ -312,7 +347,7 @@ export function enrichTeamMember(
 }
 
 export function enrichTeamMembers(issues: TeamIssueRef[]): EnrichedTeamMember[] {
-  return teamMembersSeed.map((member) => enrichTeamMember(member, issues))
+  return getTeamMembersRoster().map((member) => enrichTeamMember(member, issues))
 }
 
 export type TeamFilters = {

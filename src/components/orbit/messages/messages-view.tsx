@@ -33,6 +33,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
+import {
+  loadConversationMessages,
+  saveConversationMessages,
+  type StoredMessage,
+} from "@/lib/client-store"
 import { CURRENT_USER, getProjectTitle } from "@/lib/issues-data"
 import { getTeamMember } from "@/lib/team-data"
 import { cn } from "@/lib/utils"
@@ -211,6 +216,19 @@ export function MessagesView() {
   const memberParam = searchParams.get("member")
   const [activeId, setActiveId] = React.useState(conversations[0].id)
   const [unreadsOnly, setUnreadsOnly] = React.useState(false)
+  const [draft, setDraft] = React.useState("")
+  const [messageOverrides, setMessageOverrides] = React.useState<
+    Record<string, Array<StoredMessage>>
+  >(() => {
+    const initial: Record<string, Array<StoredMessage>> = {}
+    for (const conversation of conversations) {
+      initial[conversation.id] = loadConversationMessages(
+        conversation.id,
+        conversation.messages
+      )
+    }
+    return initial
+  })
   /** Below `md`, alternate between activity list and thread (Slack-mobile style). */
   const [mobileShowInbox, setMobileShowInbox] = React.useState(true)
   const isMobile = useIsMobile()
@@ -255,7 +273,25 @@ export function MessagesView() {
 
   const active =
     conversations.find((c) => c.id === resolvedActiveId) ?? conversations[0]
-  const lastMessageId = active.messages[active.messages.length - 1]?.id
+  const activeMessages = messageOverrides[active.id] ?? active.messages
+  const lastMessageId = activeMessages[activeMessages.length - 1]?.id
+
+  function handleSendMessage() {
+    const body = draft.trim()
+    if (!body) return
+    const message: StoredMessage = {
+      id: `m-${Date.now()}`,
+      role: "me",
+      body,
+      time: "Just now",
+    }
+    setMessageOverrides((current) => {
+      const nextThread = [...(current[active.id] ?? active.messages), message]
+      saveConversationMessages(active.id, nextThread)
+      return { ...current, [active.id]: nextThread }
+    })
+    setDraft("")
+  }
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-transparent">
@@ -513,7 +549,7 @@ export function MessagesView() {
             <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-2 sm:px-5 md:px-6 md:py-3">
               <div className="flex min-h-full flex-col">
                 <div className="w-full shrink-0 space-y-0.5">
-                  {active.messages.map((msg) => {
+                  {activeMessages.map((msg) => {
                     const isLast = msg.id === lastMessageId
                     const highlight = isLast && msg.role === "them"
                     return msg.role === "them" ? (
@@ -585,6 +621,14 @@ export function MessagesView() {
             <div className="w-full rounded-lg border border-border bg-background shadow-sm">
               <textarea
                 rows={2}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMessage()
+                  }
+                }}
                 placeholder={`Message ${active.name} · ${active.workItem.id}`}
                 className="w-full min-h-[3.25rem] resize-y rounded-t-lg border-0 bg-transparent px-3 py-2.5 text-sm outline-none ring-0 placeholder:text-muted-foreground focus-visible:ring-0 sm:min-h-[4rem] sm:px-4 sm:py-3 md:min-h-[4.25rem] md:text-[15px]"
               />
@@ -594,7 +638,7 @@ export function MessagesView() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="size-9 shrink-0 rounded-full bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground sm:size-10"
+                    className="size-9 shrink-0 rounded-full bg-muted/70 text-muted-foreground hover:bg-muted/40 hover:text-foreground sm:size-10"
                     aria-label="Attach file"
                   >
                     <PlusIcon className="size-[18px]" strokeWidth={1.75} />
@@ -653,6 +697,7 @@ export function MessagesView() {
                     size="icon"
                     aria-label="Send message"
                     className="size-9 rounded-none rounded-l-lg sm:size-10"
+                    onClick={handleSendMessage}
                   >
                     <SendIcon className="size-[18px]" strokeWidth={1.75} />
                   </Button>
@@ -664,7 +709,7 @@ export function MessagesView() {
                           variant="ghost"
                           size="icon"
                           aria-label="More send options"
-                          className="size-9 rounded-none rounded-r-lg border-l border-border px-0 text-muted-foreground hover:bg-muted/80 hover:text-foreground sm:size-10"
+                          className="size-9 rounded-none rounded-r-lg border-l border-border px-0 text-muted-foreground hover:bg-muted/40 hover:text-foreground sm:size-10"
                         >
                           <ChevronDownIcon className="size-4 opacity-70" strokeWidth={2} />
                         </Button>

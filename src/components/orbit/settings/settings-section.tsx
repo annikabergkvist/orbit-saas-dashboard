@@ -18,7 +18,7 @@ export function SettingsSection({
   return (
     <section
       className={cn(
-        "glass-subtle panel-glass-subtle flex flex-col gap-6 rounded-xl p-6 md:p-8",
+        "glass-subtle panel-glass-subtle flex flex-col gap-5 rounded-xl p-4 sm:gap-6 sm:p-6 md:p-8",
         className
       )}
     >

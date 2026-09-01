@@ -91,7 +91,7 @@ export const teamMembersSeed: TeamMember[] = [
     role: "Design Engineer",
     roleGroup: "design",
     email: "annika@orbit.app",
-    avatarUrl: "/avatars/annika.png?v=2",
+    avatarUrl: "/avatars/annika.png",
     bio: "Design engineer. I live in the gap between Figma and production — usually with too many tabs open and strong opinions about spacing.",
     githubUsername: "annikabergkvist",
     figmaUsername: "annikabergkvist",

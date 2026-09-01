@@ -161,19 +161,17 @@ export function AccountSection() {
             return (
               <li
                 key={account.id}
-                className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+                className="flex items-center gap-3 py-4 first:pt-0 last:pb-0"
               >
-                <div className="flex min-w-0 items-start gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-card">
-                    <AuthProviderIcon id={account.id} className="size-5" />
-                  </span>
-                  <div className="min-w-0 space-y-0.5">
-                    <p className="text-sm font-medium text-foreground">{account.name}</p>
-                    <p className="text-sm text-muted-foreground">{subtitle}</p>
-                  </div>
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-card">
+                  <AuthProviderIcon id={account.id} className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="text-sm font-medium text-foreground">{account.name}</p>
+                  <p className="truncate text-xs text-muted-foreground sm:text-sm">{subtitle}</p>
                 </div>
                 {isConnected ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     <CheckIcon className="size-4" strokeWidth={2} />
                     Connected
                   </span>
@@ -181,7 +179,7 @@ export function AccountSection() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-9 min-w-[7.5rem] border-border/80 bg-card px-4 shadow-none"
+                    className="h-9 shrink-0 border-border/80 bg-card px-3 shadow-none sm:min-w-[7.5rem] sm:px-4"
                     onClick={() => toggleProvider(account.id)}
                   >
                     Connect
@@ -199,10 +197,10 @@ export function AccountSection() {
         titleClassName="text-destructive"
         className="border border-destructive/40"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium text-foreground">Delete account</p>
-            <p className="max-w-xl text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Permanently delete your account and all associated data. This cannot
               be undone.
             </p>
@@ -211,7 +209,7 @@ export function AccountSection() {
             type="button"
             variant="outline"
             className={cn(
-              "h-9 shrink-0 border-border/80 bg-card px-4 shadow-none",
+              "h-10 w-full shrink-0 border-border/80 bg-card px-4 shadow-none sm:h-9 sm:w-auto",
               "hover:border-destructive/50 hover:text-destructive"
             )}
             onClick={() => setDeleteOpen(true)}

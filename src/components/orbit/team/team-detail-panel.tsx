@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { Dialog } from "@base-ui/react/dialog"
 import { MailIcon, MessageCircleIcon, XIcon } from "lucide-react"
@@ -15,6 +16,12 @@ import {
   presenceLabel,
   type EnrichedTeamMember,
 } from "@/lib/team-data"
+
+function imageSrc(url: string) {
+  // next/image rejects local URLs with unconfigured query strings (e.g. cache busters).
+  if (url.startsWith("/")) return url.split("?")[0] ?? url
+  return url
+}
 
 function memberInitials(name: string) {
   return name
@@ -39,12 +46,14 @@ function PanelBody({ member }: { member: EnrichedTeamMember }) {
       <div className="border-b border-border/60 pb-6">
         <div className="flex items-start gap-5">
           <div className="relative shrink-0">
-            <div className="size-36 overflow-hidden rounded-lg bg-muted sm:size-40">
+            <div className="relative size-36 overflow-hidden rounded-lg bg-muted sm:size-40">
               {member.avatarUrl ? (
-                <img
-                  src={member.avatarUrl}
-                  alt=""
-                  className="size-full object-cover"
+                <Image
+                  src={imageSrc(member.avatarUrl)}
+                  alt={member.name}
+                  fill
+                  sizes="(min-width: 640px) 10rem, 9rem"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-3xl font-semibold text-muted-foreground">
@@ -194,6 +203,7 @@ export function TeamDetailPanel({
             "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col overflow-hidden",
             "border-l border-border/60 bg-popover text-popover-foreground",
             "shadow-[0_8px_40px_rgba(15,23,42,0.18)] outline-none",
+            "pb-[env(safe-area-inset-bottom)]",
             "transition-transform duration-300 ease-out",
             "data-starting-style:translate-x-full data-ending-style:translate-x-full",
             "sm:w-[40vw] sm:min-w-[24rem] sm:max-w-[36rem]"

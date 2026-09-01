@@ -29,19 +29,26 @@ export function OrbitCommandPalette({ open, onOpenChange }: OrbitCommandPaletteP
   const index = React.useMemo(() => buildSearchIndex(), [])
   const results = React.useMemo(() => filterSearchIndex(query, index), [query, index])
 
-  React.useEffect(() => {
+  const [wasOpen, setWasOpen] = React.useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) {
       setQuery("")
       setActiveIndex(0)
-      return
     }
+  }
+
+  React.useEffect(() => {
+    if (!open) return
     const id = requestAnimationFrame(() => inputRef.current?.focus())
     return () => cancelAnimationFrame(id)
   }, [open])
 
-  React.useEffect(() => {
+  const [lastQuery, setLastQuery] = React.useState(query)
+  if (query !== lastQuery) {
+    setLastQuery(query)
     setActiveIndex(0)
-  }, [query])
+  }
 
   function navigate(item: SearchItem) {
     onOpenChange(false)

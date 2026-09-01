@@ -24,12 +24,14 @@ export function InviteMemberDialog({
   const [email, setEmail] = React.useState("")
   const [sent, setSent] = React.useState(false)
 
-  React.useEffect(() => {
+  const [wasOpen, setWasOpen] = React.useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) {
       setEmail("")
       setSent(false)
     }
-  }, [open])
+  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()

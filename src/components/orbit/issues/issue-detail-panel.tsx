@@ -91,15 +91,16 @@ function PanelBody({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5">
         {/* Title */}
-        <input
+        <textarea
           value={issue.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
           aria-label="Issue title"
-          className="w-full rounded-md bg-transparent px-1 py-1 text-xl font-semibold tracking-tight text-foreground outline-none transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/40"
+          rows={2}
+          className="w-full resize-none rounded-md bg-transparent px-1 py-1 text-xl font-semibold tracking-tight text-foreground outline-none transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/40"
         />
 
         {/* Meta grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <FieldLabel>Status</FieldLabel>
             <DropdownMenu>
@@ -326,6 +327,7 @@ export function IssueDetailPanel({
             "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col overflow-hidden",
             "border-l border-border/60 bg-popover text-popover-foreground",
             "shadow-[0_8px_40px_rgba(15,23,42,0.18)] outline-none",
+            "pb-[env(safe-area-inset-bottom)]",
             "transition-transform duration-300 ease-out",
             "data-starting-style:translate-x-full data-ending-style:translate-x-full",
             "sm:w-[40vw] sm:min-w-[24rem] sm:max-w-[36rem]"

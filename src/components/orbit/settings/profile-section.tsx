@@ -128,8 +128,8 @@ export function ProfileSection() {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" className="h-9 px-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button type="submit" className="h-10 w-full px-4 sm:h-9 sm:w-auto">
             Save changes
           </Button>
           {saved ? (

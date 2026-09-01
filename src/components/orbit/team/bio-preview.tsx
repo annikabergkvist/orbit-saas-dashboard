@@ -190,6 +190,10 @@ export function BioPreview({
   }, [bio])
 
   React.useLayoutEffect(() => {
+    // `measure` reads live DOM layout (scrollHeight/clientHeight) via a probe
+    // element, which is only available after the DOM has painted, so this
+    // must run in an effect rather than during render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     measure()
     const container = containerRef.current
     if (!container) return

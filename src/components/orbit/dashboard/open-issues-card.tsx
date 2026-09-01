@@ -35,7 +35,7 @@ export function OpenIssuesCard() {
             {issues.map((issue) => (
               <div
                 key={issue.id}
-                className="rounded-xl border border-foreground/10 bg-card px-4 py-3.5"
+                className="dashboard-inset-panel px-4 py-3.5"
               >
                 <div className="flex items-start gap-3">
                   <Avatar
@@ -70,7 +70,7 @@ export function OpenIssuesCard() {
             ))}
           </div>
         ) : (
-          <p className="rounded-xl border border-dashed border-foreground/15 bg-card/40 px-4 py-6 text-center text-sm text-muted-foreground">
+          <p className="dashboard-inset-panel border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
             No open team issues right now.
           </p>
         )}

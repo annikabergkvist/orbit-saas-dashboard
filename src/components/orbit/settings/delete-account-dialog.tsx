@@ -32,12 +32,14 @@ export function DeleteAccountDialog({
   const matches =
     confirmation.trim().toLowerCase() === confirmEmail.trim().toLowerCase()
 
-  React.useEffect(() => {
+  const [wasOpen, setWasOpen] = React.useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) {
       setConfirmation("")
       setSubmitted(false)
     }
-  }, [open])
+  }
 
   function handleDelete(event: React.FormEvent) {
     event.preventDefault()

@@ -1,7 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  devIndicators: false,
+  images: {
+    localPatterns: [
+      {
+        pathname: "/avatars/**",
+        search: "",
+      },
+    ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "randomuser.me",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

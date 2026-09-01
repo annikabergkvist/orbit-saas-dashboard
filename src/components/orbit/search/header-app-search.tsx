@@ -58,9 +58,11 @@ export function HeaderAppSearch({
     if (isOpen) inputRef.current?.focus()
   }, [isOpen])
 
-  React.useEffect(() => {
+  const [lastQuery, setLastQuery] = React.useState(query)
+  if (query !== lastQuery) {
+    setLastQuery(query)
     setActiveIndex(0)
-  }, [query])
+  }
 
   function navigate(item: SearchItem) {
     setOpen(false)
@@ -98,7 +100,7 @@ export function HeaderAppSearch({
       <div
         className={cn(
           "dashboard-header-search flex h-10 items-center overflow-hidden rounded-full transition-[width] duration-200 ease-in-out",
-          isOpen ? "w-[240px]" : "w-0"
+          isOpen ? "w-[min(11.5rem,calc(100vw-11rem))] md:w-[240px]" : "w-0"
         )}
       >
         <input
@@ -107,16 +109,16 @@ export function HeaderAppSearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search… ⌘K"
+          placeholder="Search…"
           aria-label="Search Orbit"
           tabIndex={isOpen ? 0 : -1}
-          className="h-full w-[240px] shrink-0 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none"
+          className="h-full w-[min(11.5rem,calc(100vw-11rem))] shrink-0 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none md:w-[240px]"
         />
       </div>
 
       {showResults ? (
-        <div className="absolute top-full right-0 z-50 mt-2 w-[min(100vw-2rem,320px)] overflow-hidden rounded-xl border border-border/60 bg-popover shadow-xl">
-          <ul className="max-h-72 overflow-y-auto p-1" role="listbox">
+        <div className="glass-menu absolute top-full right-0 z-50 mt-2 w-[min(100vw-2rem,320px)] overflow-hidden rounded-xl">
+          <ul className="relative z-[1] max-h-72 overflow-y-auto p-1" role="listbox">
             {results.map((item, index) => (
               <li key={item.id}>
                 <button
@@ -126,8 +128,8 @@ export function HeaderAppSearch({
                   className={cn(
                     "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
                     index === activeIndex
-                      ? "bg-primary/10 text-foreground"
-                      : "hover:bg-muted/60"
+                      ? "bg-primary/10 text-foreground dark:bg-violet-500/18"
+                      : "hover:bg-muted/60 dark:hover:bg-violet-500/10"
                   )}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => navigate(item)}

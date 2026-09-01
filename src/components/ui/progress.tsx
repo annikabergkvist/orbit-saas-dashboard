@@ -11,7 +11,7 @@ function progressFillStyle(pct: number): React.CSSProperties {
   }
 
   return {
-    backgroundImage: `linear-gradient(90deg, color-mix(in oklch, var(--primary) 82%, black) 0%, var(--primary) 50%, color-mix(in oklch, var(--primary) 68%, white) 100%)`,
+    backgroundImage: `linear-gradient(90deg, var(--progress-fill-start) 0%, var(--progress-fill-mid) 50%, var(--progress-fill-end) 100%)`,
     backgroundSize: `${10000 / pct}% 100%`,
     backgroundRepeat: "no-repeat",
   }

@@ -13,7 +13,9 @@ import {
 } from "lucide-react"
 
 import { OrbitAppSidebar } from "@/components/orbit/app-sidebar"
+import { MobileTabBar } from "@/components/orbit/mobile-tab-bar"
 import { NotificationsPopover } from "@/components/orbit/notifications/notifications-popover"
+import { ThemeToggle } from "@/components/orbit/theme-toggle"
 import {
   HeaderAppSearch,
   useHeaderSearchShortcut,
@@ -75,13 +77,17 @@ function getTimeBasedGreeting(firstName: string): string {
 function DashboardHomeHeader({ firstName }: { firstName: string }) {
   const [greeting, setGreeting] = React.useState<string | null>(null)
 
+  // The greeting depends on the visitor's local clock, which can differ from
+  // the server's render time, so it's computed post-mount to avoid a
+  // hydration mismatch.
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGreeting(getTimeBasedGreeting(firstName))
   }, [firstName])
 
   return (
-    <div className="min-w-0 shrink-0">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+    <div className="min-w-0 shrink">
+      <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Dashboard</h1>
       {greeting != null ? (
         <p className="mt-0.5 text-[13px] text-muted-foreground">{greeting}</p>
       ) : null}
@@ -125,7 +131,7 @@ function UserAccountMenu({
             <Button
               variant="ghost"
               className={cn(
-                "h-auto gap-2 rounded-xl px-3 py-2 sm:gap-3 sm:px-4 sm:py-1.5",
+                "h-auto gap-1.5 rounded-xl px-1.5 py-1.5 sm:gap-3 sm:px-4 sm:py-1.5",
                 headerActionClass
               )}
             >
@@ -155,7 +161,8 @@ function UserAccountMenu({
         <DropdownMenuContent
           align="end"
           sideOffset={8}
-          className="w-56 overflow-hidden rounded-md p-0 shadow-lg ring-1 ring-foreground/5"
+          glass
+          className="w-56 overflow-hidden rounded-xl p-0"
         >
           <div className="px-4 py-3">
             <p className="text-xs text-muted-foreground">Signed in as</p>
@@ -167,10 +174,10 @@ function UserAccountMenu({
           <div className="p-1">
             <DropdownMenuItem
               className="rounded-sm px-3 py-2"
-              render={<Link href="/settings?tab=account" />}
+              render={<Link href="/settings" />}
               nativeButton={false}
             >
-              Account settings
+              Settings
             </DropdownMenuItem>
             <DropdownMenuItem
               className="rounded-sm px-3 py-2"
@@ -242,34 +249,38 @@ function AppShellHeader({
   return (
     <header
       className={cn(
-        "flex shrink-0 items-center gap-4 px-8 lg:px-10",
-        isHome ? "min-h-16 py-3" : "h-16"
+        "flex shrink-0 items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-10",
+        "pt-[max(0.5rem,env(safe-area-inset-top))]",
+        isHome ? "min-h-16 pb-3" : "h-16 max-md:h-auto max-md:min-h-14 max-md:py-2"
       )}
     >
       {isHome ? (
         <DashboardHomeHeader firstName={userFirstName(user.name)} />
       ) : shellHeaderTitle(pathname) != null ? (
-        <h1 className="shrink-0 text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="min-w-0 shrink truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           {shellHeaderTitle(pathname)}
         </h1>
       ) : (
         <div className="min-w-0 flex-1" />
       )}
 
-      <div className="ml-auto flex min-w-0 items-center gap-4">
+      <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-4">
         <HeaderAppSearch
           open={searchOpen}
           onOpenChange={onSearchOpenChange}
           triggerClassName={headerActionClass}
         />
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           <div className="flex items-center gap-0">
+            <ThemeToggle className={cn("max-md:hidden", headerActionClass)} />
+
             <Link
               href="/messages"
               className={cn(
                 buttonVariants({ variant: "ghost", size: "icon" }),
-                "relative size-9 rounded-full",
+                "relative size-10 rounded-full md:size-9",
+                "max-md:hidden",
                 headerActionClass
               )}
               aria-label="Messages"
@@ -284,7 +295,7 @@ function AppShellHeader({
             </Link>
 
             <NotificationsPopover
-              triggerClassName={cn("size-9 rounded-full", headerActionClass)}
+              triggerClassName={cn("size-10 rounded-full md:size-9", headerActionClass)}
               unreadDotClassName="ring-[var(--dashboard-mesh-base)]"
             />
           </div>
@@ -313,14 +324,17 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         >
           <OrbitAppSidebar />
 
-          <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col !bg-transparent">
+          <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col !bg-transparent max-md:h-svh max-md:max-h-svh max-md:overflow-hidden">
             <AppShellHeader
               pathname={pathname}
               user={user}
               searchOpen={searchOpen}
               onSearchOpenChange={setSearchOpen}
             />
-            <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:overflow-visible">
+              {children}
+            </div>
+            <MobileTabBar />
           </SidebarInset>
         </SidebarProvider>
       </TooltipProvider>

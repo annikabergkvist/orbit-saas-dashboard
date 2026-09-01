@@ -68,13 +68,13 @@ function FilterMenu({
           <Button
             type="button"
             variant="outline"
-            className={cn(
-              "h-9 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none",
+              className={cn(
+              "h-9 w-full min-w-0 shrink-0 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none sm:w-auto",
               current && "border-primary/40 text-foreground"
             )}
           >
-            <span className="text-muted-foreground">{label}:</span>
-            <span>{current ? current.label : "Any"}</span>
+            <span className="shrink-0 text-muted-foreground">{label}:</span>
+            <span className="truncate">{current ? current.label : "Any"}</span>
             <ChevronDownIcon className="size-4 opacity-60" strokeWidth={2} />
           </Button>
         }
@@ -152,8 +152,8 @@ function TeamMemberCard({
         <div
           className={cn(
             "flex shrink-0 items-center gap-1",
-            "pointer-events-none opacity-0 transition-opacity duration-300",
-            "group-hover:pointer-events-auto group-hover:opacity-100",
+            "max-md:pointer-events-auto max-md:opacity-100",
+            "pointer-events-none opacity-0 transition-opacity duration-300 md:group-hover:pointer-events-auto md:group-hover:opacity-100",
             "group-focus-within:pointer-events-auto group-focus-within:opacity-100"
           )}
           onClick={(e) => e.stopPropagation()}
@@ -222,27 +222,39 @@ export function TeamView() {
 
   React.useEffect(() => subscribeStore(() => setStoreTick((tick) => tick + 1)), [])
 
-  const members = React.useMemo(() => enrichTeamMembers(issuesSeed), [storeTick])
+  const members = React.useMemo(() => {
+    // storeTick forces a recompute when localStorage-backed roster data changes.
+    void storeTick
+    return enrichTeamMembers(issuesSeed)
+  }, [storeTick])
   const filtered = React.useMemo(
     () => filterTeamMembers(members, { search, roleGroup, projectSlug }),
     [members, search, roleGroup, projectSlug]
   )
 
   const selectedMember = filtered.find((m) => m.id === selectedMemberId) ?? null
-  const lastMemberRef = React.useRef<EnrichedTeamMember | null>(null)
-  if (selectedMember) lastMemberRef.current = selectedMember
-  const panelMember = selectedMember ?? lastMemberRef.current
+  const [lastMember, setLastMember] = React.useState<EnrichedTeamMember | null>(null)
+  if (selectedMember && selectedMember.id !== lastMember?.id) {
+    setLastMember(selectedMember)
+  }
+  const panelMember = selectedMember ?? lastMember
 
-  React.useEffect(() => {
-    if (memberParam && members.some((member) => member.id === memberParam)) {
-      setSelectedMemberId(memberParam)
-    }
-  }, [memberParam, members])
+  // Adjust selection during render (guarded) rather than in an effect, since
+  // this is deriving state from a prop (the URL) that changed this render.
+  const [appliedMemberParam, setAppliedMemberParam] = React.useState<string | null>(null)
+  if (
+    memberParam &&
+    memberParam !== appliedMemberParam &&
+    members.some((member) => member.id === memberParam)
+  ) {
+    setAppliedMemberParam(memberParam)
+    setSelectedMemberId(memberParam)
+  }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-6 px-6 py-8 md:px-10 lg:px-16">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-0 flex-1 sm:max-w-xs">
+    <div className="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-8 md:px-10 lg:px-16">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-0 w-full sm:max-w-xs sm:flex-1">
           <SearchIcon
             className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
             strokeWidth={1.75}
@@ -253,10 +265,11 @@ export function TeamView() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search team members..."
-            className="h-9 border-border/80 bg-card pl-9 shadow-none"
+            className="h-10 border-border/80 bg-card pl-9 shadow-none sm:h-9"
             aria-label="Search team members"
           />
         </div>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:overflow-visible">
         <FilterMenu
           label="Role"
           value={roleGroup}
@@ -269,10 +282,11 @@ export function TeamView() {
           options={issueProjects.map((p) => ({ value: p.slug, label: p.title }))}
           onChange={setProjectSlug}
         />
+        </div>
         <Button
           type="button"
           variant="outline"
-          className="ml-auto h-9 gap-1.5 px-4"
+          className="h-10 w-full shrink-0 gap-1.5 px-4 sm:ml-auto sm:h-9 sm:w-auto"
           onClick={() => setInviteOpen(true)}
         >
           <PlusIcon className="size-4" strokeWidth={2} />

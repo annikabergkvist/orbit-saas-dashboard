@@ -135,9 +135,47 @@ export function ProjectCalendarView({
     ].filter((item) => item.due)
   }, [projectSlug, tasks])
 
+  const agenda = React.useMemo(() => {
+    const grouped = new Map<string, typeof items>()
+    for (const item of items) {
+      if (!item.due) continue
+      const list = grouped.get(item.due) ?? []
+      list.push(item)
+      grouped.set(item.due, list)
+    }
+    return [...grouped.entries()].sort((a, b) => {
+      const dayA = Number.parseInt(a[0].replace(/\D/g, ""), 10)
+      const dayB = Number.parseInt(b[0].replace(/\D/g, ""), 10)
+      return dayA - dayB
+    })
+  }, [items])
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-7 gap-2">
+      <ul className="space-y-3 md:hidden">
+        {agenda.length === 0 ? (
+          <li className="rounded-xl border border-dashed border-border/80 bg-card px-4 py-8 text-center text-sm text-muted-foreground">
+            No dated tasks this month.
+          </li>
+        ) : (
+          agenda.map(([due, dayItems]) => (
+            <li key={due} className="rounded-xl border border-border/60 bg-card p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {due}
+              </p>
+              <ul className="mt-2 space-y-2">
+                {dayItems.map((item) => (
+                  <li key={item.id} className="text-sm font-medium text-foreground">
+                    {item.title}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <div className="hidden grid-cols-7 gap-2 md:grid">
         {CALENDAR_DAYS.map((day) => (
           <div
             key={day}

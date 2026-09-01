@@ -39,7 +39,7 @@ function MenuButton({ label }: { label: string }) {
     <Button
       type="button"
       variant="ghost"
-      className="h-8 gap-1.5 px-2.5 font-normal text-foreground hover:bg-muted/40"
+      className="h-9 w-full gap-1.5 px-2.5 font-normal text-foreground hover:bg-muted/40 sm:h-8 sm:w-auto"
     >
       {label}
       <ChevronDownIcon className="size-3.5 opacity-60" strokeWidth={2} />
@@ -63,79 +63,82 @@ export function BulkActionBar({
   onDelete: () => void
 }) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
-      <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-border/60 bg-popover py-1.5 pr-1.5 pl-3 text-sm text-popover-foreground shadow-[0_8px_30px_rgba(15,23,42,0.18)]">
-        <span className="mr-1 font-medium tabular-nums">
-          {count} selected
-        </span>
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-tab-bar)+0.5rem)] z-50 flex justify-center px-3 md:bottom-6 md:px-4">
+      <div className="pointer-events-auto flex w-full max-w-lg flex-col gap-2 rounded-2xl border border-border/60 bg-popover p-2 text-sm text-popover-foreground shadow-[0_8px_30px_rgba(15,23,42,0.18)] sm:w-auto sm:max-w-full sm:flex-row sm:flex-wrap sm:items-center sm:rounded-full sm:py-1.5 sm:pr-1.5 sm:pl-3">
+        <div className="flex items-center justify-between gap-2 px-1 sm:contents">
+          <span className="font-medium tabular-nums sm:mr-1">
+            {count} selected
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Clear selection"
+            className="size-8 sm:order-last"
+            onClick={onClear}
+          >
+            <XIcon className="size-4" strokeWidth={2} />
+          </Button>
+        </div>
 
-        <span className="mx-1 h-5 w-px bg-border/70" aria-hidden />
+        <span className="mx-1 hidden h-5 w-px bg-border/70 sm:block" aria-hidden />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<MenuButton label="Status" />} />
-          <DropdownMenuContent align="center" className="min-w-[12rem]">
-            {statusValues.map((s) => (
-              <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
-                {BOARD_COLUMN_LABELS[s]}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="grid grid-cols-3 gap-1 sm:flex sm:items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<MenuButton label="Status" />} />
+            <DropdownMenuContent align="center" className="min-w-[12rem]">
+              {statusValues.map((s) => (
+                <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
+                  {BOARD_COLUMN_LABELS[s]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<MenuButton label="Priority" />} />
-          <DropdownMenuContent align="center" className="min-w-[12rem]">
-            {priorityValues.map((p) => (
-              <DropdownMenuItem key={p.value} onClick={() => onSetPriority(p.value)}>
-                {p.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<MenuButton label="Priority" />} />
+            <DropdownMenuContent align="center" className="min-w-[12rem]">
+              {priorityValues.map((p) => (
+                <DropdownMenuItem key={p.value} onClick={() => onSetPriority(p.value)}>
+                  {p.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<MenuButton label="Assignee" />} />
-          <DropdownMenuContent align="center" className="min-w-[13rem]">
-            {issueAssignees.map((member) => (
-              <DropdownMenuItem
-                key={member.id}
-                onClick={() => onSetAssignee(member.id)}
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Avatar className="size-5 ring-0" title={member.name}>
-                    <AvatarImage src={member.avatarUrl} alt="" />
-                    <AvatarFallback className="text-[9px] font-semibold">
-                      {memberInitials(member.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {member.id === CURRENT_USER.id ? `${member.name} (Me)` : member.name}
-                </span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<MenuButton label="Assignee" />} />
+            <DropdownMenuContent align="center" className="min-w-[13rem]">
+              {issueAssignees.map((member) => (
+                <DropdownMenuItem
+                  key={member.id}
+                  onClick={() => onSetAssignee(member.id)}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Avatar className="size-5 ring-0" title={member.name}>
+                      <AvatarImage src={member.avatarUrl} alt="" />
+                      <AvatarFallback className="text-[9px] font-semibold">
+                        {memberInitials(member.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {member.id === CURRENT_USER.id ? `${member.name} (Me)` : member.name}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-        <span className="mx-1 h-5 w-px bg-border/70" aria-hidden />
+        <span className="mx-1 hidden h-5 w-px bg-border/70 sm:block" aria-hidden />
 
         <Button
           type="button"
           variant="ghost"
-          className="h-8 gap-1.5 px-2.5 font-normal text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="h-9 w-full gap-1.5 px-2.5 font-normal text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-8 sm:w-auto"
           onClick={onDelete}
         >
           <Trash2Icon className="size-4" strokeWidth={1.75} />
           Delete
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="Clear selection"
-          className="size-8"
-          onClick={onClear}
-        >
-          <XIcon className="size-4" strokeWidth={2} />
         </Button>
       </div>
     </div>

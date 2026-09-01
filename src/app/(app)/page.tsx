@@ -23,7 +23,7 @@ import {
   getDashboardKpiCounts,
 } from "@/lib/projects-data"
 
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -89,33 +89,35 @@ function KpiCard({
 }) {
   return (
     <Card glass className="gap-0 py-0">
-      <CardContent className="p-4">
-        <div className="mb-2 flex items-start justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/25 text-foreground backdrop-blur-sm">
-              <Icon className="size-4" strokeWidth={1.75} />
+      <CardContent className="p-3 sm:p-4">
+        <Link href={href} className="block outline-none" aria-label={`Open ${title.toLowerCase()}`}>
+          <div className="mb-2 flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+              <div className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/25 text-foreground backdrop-blur-sm sm:size-8 dark:border-violet-500/25 dark:bg-violet-950/50 dark:text-violet-200 dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)]">
+                <Icon className="size-3.5 sm:size-4" strokeWidth={1.75} />
+              </div>
+              <span className="text-xs font-medium text-foreground sm:text-sm">{title}</span>
             </div>
-            <span className="text-sm font-medium text-foreground">{title}</span>
+            <span
+              className={cn(
+                buttonVariants({
+                  variant: "outline",
+                  size: "icon-lg",
+                  className:
+                    "hidden size-9 shrink-0 rounded-full border-border bg-muted/50 text-foreground shadow-none hover:bg-muted/35 md:inline-flex dark:border-violet-500/20 dark:bg-violet-950/40 dark:text-violet-200 dark:hover:border-violet-500/35 dark:hover:bg-violet-900/45 dark:hover:shadow-[0_0_14px_rgb(88_28_135_/_0.35)]",
+                })
+              )}
+              aria-hidden
+            >
+              <ArrowUpRightIcon className="size-[18px]" strokeWidth={1.75} />
+            </span>
           </div>
-          <Link
-            href={href}
-            aria-label={`Open ${title.toLowerCase()}`}
-            className={cn(
-              buttonVariants({
-                variant: "outline",
-                size: "icon-lg",
-                className:
-                  "size-9 shrink-0 rounded-full border-border bg-muted/50 text-foreground shadow-none hover:bg-muted/35",
-              })
-            )}
-          >
-            <ArrowUpRightIcon className="size-[18px]" strokeWidth={1.75} />
-          </Link>
-        </div>
 
-        <CardTitle className="text-3xl font-bold tracking-tight">{value}</CardTitle>
-
-        <p className="mt-2 text-xs text-muted-foreground">{context}</p>
+          <CardTitle className="text-2xl font-bold tracking-tight sm:text-3xl dark:bg-gradient-to-br dark:from-violet-100 dark:to-violet-400 dark:bg-clip-text dark:text-transparent">
+            {value}
+          </CardTitle>
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{context}</p>
+        </Link>
       </CardContent>
     </Card>
   )
@@ -123,9 +125,9 @@ function KpiCard({
 
 export default function Home() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 py-8 px-16">
+    <div className="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:px-8 sm:py-8 md:px-10 lg:px-16">
       {/* KPI row */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {dashboardKpis.map((kpi) => (
           <KpiCard
             key={kpi.title}

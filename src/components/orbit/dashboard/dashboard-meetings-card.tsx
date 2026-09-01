@@ -9,7 +9,7 @@ import {
   ChevronRightIcon,
 } from "lucide-react"
 
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -79,7 +79,7 @@ export function DashboardMeetingsCard() {
               {meetings.map((meeting) => (
                 <div
                   key={meeting.id}
-                  className="rounded-xl border border-foreground/10 bg-card px-4 py-3.5"
+                  className="dashboard-inset-panel px-4 py-3.5"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="min-w-0 truncate text-base font-bold text-foreground">
@@ -114,7 +114,7 @@ export function DashboardMeetingsCard() {
             </Link>
           </>
         ) : (
-          <div className="rounded-xl border border-dashed border-foreground/15 bg-card/40 px-4 py-8 text-center">
+          <div className="dashboard-inset-panel border-dashed px-4 py-8 text-center">
             <CalendarIcon
               className="mx-auto mb-3 size-8 text-muted-foreground/50"
               strokeWidth={1.5}

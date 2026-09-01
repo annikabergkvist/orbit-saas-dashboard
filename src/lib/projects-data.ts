@@ -78,20 +78,26 @@ export const dashboardProjectSortOptions: {
 
 /** Timeline bar accent — encodes project category (matches `/projects` type badges). */
 export const projectTypeAccentColors: Record<ProjectType, string> = {
-  development: "var(--primary)",
-  design: "var(--activity-completed)",
-  documentation: "var(--status-chart-completed)",
+  development: "var(--timeline-accent-development)",
+  design: "var(--timeline-accent-design)",
+  documentation: "var(--timeline-accent-documentation)",
 }
 
 /** Distinct chart accents for dashboard rings — stable per project, not by priority. */
 const dashboardProjectAccentPalette = [
-  "var(--primary)",
-  "var(--activity-created)",
-  "var(--activity-completed)",
-  "var(--status-chart-completed)",
-  "var(--status-chart-in-review)",
-  "var(--chart-4)",
-  "var(--chart-5)",
+  "var(--purple)",
+  "var(--chart-segment-3)",
+  "var(--chart-segment-5)",
+  "var(--chart-segment-4)",
+  "var(--chart-segment-1)",
+] as const
+
+/** Progress card rings — hue-spaced so adjacent rings stay visually distinct. */
+const dashboardProgressRingPalette = [
+  "var(--progress-ring-1)",
+  "var(--progress-ring-2)",
+  "var(--progress-ring-3)",
+  "var(--progress-ring-4)",
 ] as const
 
 export function getProjectTypeAccentColor(type: ProjectType): string {
@@ -103,6 +109,12 @@ export function getProjectAccentColor(project: ProjectSummary): string {
   const paletteIndex = index >= 0 ? index : 0
   return dashboardProjectAccentPalette[
     paletteIndex % dashboardProjectAccentPalette.length
+  ]
+}
+
+export function getDashboardProgressRingColor(ringIndex: number): string {
+  return dashboardProgressRingPalette[
+    ringIndex % dashboardProgressRingPalette.length
   ]
 }
 
@@ -177,20 +189,24 @@ export function countProjectsNeedingAttention(): number {
 }
 
 /** Same filtering/sorting as `/projects` — single source of truth for project lists. */
-export function listProjects(options?: {
-  lifecycle?: ProjectLifecycle | "all"
-  sort?: ProjectSort
-  search?: string
-  needsAttention?: boolean
-}): ProjectSummary[] {
+export function listProjects(
+  options?: {
+    lifecycle?: ProjectLifecycle | "all"
+    sort?: ProjectSort
+    search?: string
+    needsAttention?: boolean
+    source?: ProjectSummary[]
+  }
+): ProjectSummary[] {
   const lifecycle = options?.lifecycle ?? "all"
   const sort = options?.sort ?? "name-asc"
   const query = options?.search?.trim().toLowerCase() ?? ""
+  const catalog = options?.source ?? projectsSeed
 
   let list =
     lifecycle === "all"
-      ? [...projectsSeed]
-      : projectsSeed.filter((p) => p.lifecycle === lifecycle)
+      ? [...catalog]
+      : catalog.filter((p) => p.lifecycle === lifecycle)
 
   if (options?.needsAttention) {
     list = list.filter(projectNeedsAttention)
@@ -474,7 +490,7 @@ export const projectsSeed: ProjectSummary[] = [
       {
         id: "m-15",
         name: "Annika Bergkvist",
-        avatarUrl: "/avatars/annika.png?v=2",
+        avatarUrl: "/avatars/annika.png",
       },
     ],
   },
@@ -1317,7 +1333,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
           {
             id: "m-15",
             name: "Annika Bergkvist",
-            avatarUrl: "/avatars/annika.png?v=2",
+            avatarUrl: "/avatars/annika.png",
           },
         ],
       },
@@ -1337,7 +1353,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
           {
             id: "m-15",
             name: "Annika Bergkvist",
-            avatarUrl: "/avatars/annika.png?v=2",
+            avatarUrl: "/avatars/annika.png",
           },
         ],
       },
@@ -1375,7 +1391,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
           {
             id: "m-15",
             name: "Annika Bergkvist",
-            avatarUrl: "/avatars/annika.png?v=2",
+            avatarUrl: "/avatars/annika.png",
           },
         ],
       },
@@ -1444,7 +1460,7 @@ const boardsBySlug: Record<string, ProjectBoard> = {
           {
             id: "m-15",
             name: "Annika Bergkvist",
-            avatarUrl: "/avatars/annika.png?v=2",
+            avatarUrl: "/avatars/annika.png",
           },
         ],
       },
@@ -1577,8 +1593,65 @@ const boardsBySlug: Record<string, ProjectBoard> = {
   },
 }
 
-export function getProjectBySlug(slug: string): ProjectSummary | undefined {
-  return projectsSeed.find((p) => p.slug === slug)
+export function getProjectBySlug(
+  slug: string,
+  source: ProjectSummary[] = projectsSeed
+): ProjectSummary | undefined {
+  return source.find((p) => p.slug === slug)
+}
+
+export type NewProjectValues = {
+  title: string
+  description: string
+  type: ProjectType
+  priority: ProjectPriority
+}
+
+function nextProjectId(existing: ProjectSummary[]): string {
+  const max = existing.reduce((highest, project) => {
+    const match = /^p-(\d+)$/.exec(project.id)
+    return match ? Math.max(highest, Number.parseInt(match[1], 10)) : highest
+  }, 0)
+  return `p-${max + 1}`
+}
+
+export function createUniqueProjectSlug(
+  title: string,
+  existing: ProjectSummary[]
+): string {
+  const base =
+    title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "project"
+  const taken = new Set(existing.map((project) => project.slug))
+  if (!taken.has(base)) return base
+  let index = 2
+  while (taken.has(`${base}-${index}`)) index += 1
+  return `${base}-${index}`
+}
+
+export function buildProjectFromValues(
+  values: NewProjectValues,
+  existing: ProjectSummary[],
+  owner: ProjectMember
+): ProjectSummary {
+  const title = values.title.trim()
+  return {
+    id: nextProjectId(existing),
+    slug: createUniqueProjectSlug(title, existing),
+    title,
+    description: values.description.trim() || "No description yet.",
+    type: values.type,
+    priority: values.priority,
+    lifecycle: "planning",
+    progress: 0,
+    comments: 0,
+    attachments: 0,
+    dueLabel: "—",
+    team: [owner],
+  }
 }
 
 export function getBoardForProject(project: ProjectSummary): ProjectBoard {

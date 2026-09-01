@@ -3,7 +3,7 @@
  * In production these keys would be replaced by API-backed user/workspace state.
  */
 
-import type { BoardTask } from "@/lib/projects-data"
+import type { BoardTask, ProjectSummary } from "@/lib/projects-data"
 import type { Issue } from "@/lib/issues-data"
 import {
   integrations,
@@ -21,6 +21,7 @@ export const STORAGE_KEYS = {
   notificationPrefs: "orbit:notification-prefs",
   userProfile: "orbit:user-profile",
   issues: "orbit:issues",
+  projects: "orbit:projects",
   boardTasks: "orbit:board-tasks",
   messages: "orbit:messages",
   completedIssueIds: "orbit:completed-issue-ids",
@@ -154,6 +155,15 @@ export function loadPersistedIssues(fallback: Issue[]): Issue[] {
 
 export function savePersistedIssues(issues: Issue[]) {
   writeJSON(STORAGE_KEYS.issues, issues)
+}
+
+export function loadPersistedProjects(fallback: ProjectSummary[]): ProjectSummary[] {
+  const stored = readJSON<ProjectSummary[] | null>(STORAGE_KEYS.projects, null)
+  return stored ?? fallback
+}
+
+export function savePersistedProjects(projects: ProjectSummary[]) {
+  writeJSON(STORAGE_KEYS.projects, projects)
 }
 
 export function loadBoardTasks(projectSlug: string, fallback: BoardTask[]): BoardTask[] {

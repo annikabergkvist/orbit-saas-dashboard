@@ -26,24 +26,25 @@ export function IntegrationsSection() {
           return (
             <li
               key={item.id}
-              className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+              className="flex items-center gap-3 py-4 first:pt-0 last:pb-0"
             >
-              <div className="flex min-w-0 items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-card">
-                  <IntegrationIcon id={item.id} className="size-5" />
-                </span>
-                <div className="min-w-0 space-y-0.5">
-                  <p className="text-sm font-medium text-foreground">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </div>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-card">
+                <IntegrationIcon id={item.id} className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-sm font-medium text-foreground">{item.name}</p>
+                <p className="text-xs leading-snug text-muted-foreground sm:text-sm">
+                  {item.description}
+                </p>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 className={cn(
-                  "h-9 min-w-[7.5rem] border-border/80 bg-card px-4 shadow-none",
-                  isConnected &&
-                    "border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/5 dark:text-emerald-400"
+                  "h-9 shrink-0 px-3 shadow-none sm:min-w-[7.5rem] sm:px-4",
+                  isConnected
+                    ? "border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/5 dark:text-emerald-400"
+                    : "border-border/80 bg-card"
                 )}
                 onClick={() => toggleConnection(item.id)}
               >

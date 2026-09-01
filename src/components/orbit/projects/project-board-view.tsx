@@ -55,7 +55,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { loadBoardTasks, saveBoardTasks } from "@/lib/client-store"
 import {
@@ -93,10 +101,10 @@ function FilterChip({ label, value }: { label: string; value: string }) {
     <Button
       type="button"
       variant="outline"
-      className="h-9 gap-2 rounded-lg border-border/80 bg-card px-3 font-normal text-foreground shadow-none"
+      className="h-9 w-full min-w-0 gap-2 rounded-lg border-border/80 bg-card px-3 font-normal text-foreground shadow-none sm:w-auto"
     >
       <span className="text-muted-foreground">{label}:</span>
-      <span>{value}</span>
+      <span className="truncate">{value}</span>
       <ChevronDownIcon className="size-3.5 opacity-60" strokeWidth={2} />
     </Button>
   )
@@ -138,9 +146,11 @@ function isCompletedColumn(column: BoardColumnId): boolean {
 function BoardTaskCard({
   task,
   className,
+  onMove,
 }: {
   task: BoardTask
   className?: string
+  onMove?: (column: BoardColumnId) => void
 }) {
   const isCompleted = isCompletedColumn(task.column)
 
@@ -163,9 +173,10 @@ function BoardTaskCard({
       <div className="min-w-0 flex-1">
       <div className="space-y-3 p-4">
         <div className="space-y-1.5">
+          <div className="flex items-start justify-between gap-2">
           <h3
             className={cn(
-              "text-lg font-semibold leading-snug tracking-tight",
+              "min-w-0 flex-1 text-lg font-semibold leading-snug tracking-tight",
               isCompleted
                 ? "text-[#9aa3b2] line-through decoration-[#949ca6] decoration-1"
                 : "text-foreground"
@@ -173,6 +184,38 @@ function BoardTaskCard({
           >
             {task.title}
           </h3>
+          {onMove ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 shrink-0 gap-1 border-border/80 bg-card px-2.5 text-xs font-medium shadow-none"
+                    aria-label={`Move ${task.title}`}
+                  >
+                    Move
+                    <ChevronDownIcon className="size-3.5 opacity-60" strokeWidth={2} />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="min-w-[10rem]">
+                <DropdownMenuRadioGroup
+                  value={task.column}
+                  onValueChange={(value) => {
+                    if (isColumnId(value) && value !== task.column) onMove(value)
+                  }}
+                >
+                  {boardColumns.map((col) => (
+                    <DropdownMenuRadioItem key={col.id} value={col.id}>
+                      {col.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+          </div>
           {task.description ? (
             <p className={cn("text-[13px] leading-relaxed", metaClass)}>{task.description}</p>
           ) : null}
@@ -290,6 +333,45 @@ function SortableTaskCard({ task }: { task: BoardTask }) {
   )
 }
 
+function KanbanColumnHeader({
+  col,
+  count,
+}: {
+  col: (typeof boardColumns)[number]
+  count: number
+}) {
+  return (
+    <header className="flex items-center gap-2">
+      <div
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
+          col.headerClass
+        )}
+      >
+        <span className={cn("size-2 shrink-0 rounded-full", col.dotClass)} aria-hidden />
+        {col.label}
+      </div>
+      <span className="text-xs font-semibold tabular-nums text-[#9aa3b2]">{count}</span>
+      <div className="ml-auto hidden items-center gap-0.5 md:flex">
+        <button
+          type="button"
+          className="rounded-md p-1.5 text-[#9aa3b2] transition-colors hover:text-foreground"
+          aria-label={`${col.label} column menu`}
+        >
+          <MoreHorizontalIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          className="rounded-md p-1.5 text-[#9aa3b2] transition-colors hover:text-foreground"
+          aria-label={`Add task to ${col.label}`}
+        >
+          <PlusIcon className="size-4" />
+        </button>
+      </div>
+    </header>
+  )
+}
+
 function KanbanColumn({
   col,
   tasks,
@@ -308,36 +390,7 @@ function KanbanColumn({
           isOver && "ring-2 ring-primary/20"
         )}
       >
-        <header className="flex items-center gap-2">
-          <div
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
-              col.headerClass
-            )}
-          >
-            <span className={cn("size-2 shrink-0 rounded-full", col.dotClass)} aria-hidden />
-            {col.label}
-          </div>
-          <span className="text-xs font-semibold tabular-nums text-[#9aa3b2]">
-            {tasks.length}
-          </span>
-          <div className="ml-auto flex items-center gap-0.5">
-            <button
-              type="button"
-              className="rounded-md p-1 text-[#9aa3b2] transition-colors hover:text-foreground"
-              aria-label={`${col.label} column menu`}
-            >
-              <MoreHorizontalIcon className="size-4" />
-            </button>
-            <button
-              type="button"
-              className="rounded-md p-1 text-[#9aa3b2] transition-colors hover:text-foreground"
-              aria-label={`Add task to ${col.label}`}
-            >
-              <PlusIcon className="size-4" />
-            </button>
-          </div>
-        </header>
+        <KanbanColumnHeader col={col} count={tasks.length} />
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           <div ref={setNodeRef} className="flex min-h-[120px] flex-col gap-3">
             {tasks.map((task) => (
@@ -350,6 +403,37 @@ function KanbanColumn({
   )
 }
 
+function MobileKanbanColumn({
+  col,
+  tasks,
+  onMove,
+}: {
+  col: (typeof boardColumns)[number]
+  tasks: BoardTask[]
+  onMove: (taskId: string, column: BoardColumnId) => void
+}) {
+  return (
+    <section className="flex w-full flex-col">
+      <div className="flex flex-col gap-3 rounded-lg bg-[#f1f2f5] px-2.5 pt-2 pb-2.5 dark:bg-muted/40">
+        <KanbanColumnHeader col={col} count={tasks.length} />
+        <div className="flex min-h-[72px] flex-col gap-3">
+          {tasks.length === 0 ? (
+            <p className="px-1 py-4 text-center text-xs text-muted-foreground">No tasks</p>
+          ) : (
+            tasks.map((task) => (
+              <BoardTaskCard
+                key={task.id}
+                task={task}
+                onMove={(column) => onMove(task.id, column)}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function KanbanBoard({
   tasks,
   setTasks,
@@ -357,6 +441,7 @@ function KanbanBoard({
   tasks: BoardTask[]
   setTasks: React.Dispatch<React.SetStateAction<BoardTask[]>>
 }) {
+  const isMobile = useIsMobile()
   const [activeId, setActiveId] = React.useState<string | null>(null)
 
   const tasksByColumn = React.useMemo(() => groupTasksByColumn(tasks), [tasks])
@@ -366,6 +451,12 @@ function KanbanBoard({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
+
+  function moveTask(taskId: string, column: BoardColumnId) {
+    setTasks((prev) =>
+      prev.map((task) => (task.id === taskId ? applyTaskToColumn(task, column) : task))
+    )
+  }
 
   const findContainer = React.useCallback(
     (id: string) => {
@@ -433,6 +524,21 @@ function KanbanBoard({
 
   const handleDragCancel = () => {
     setActiveId(null)
+  }
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-5 pb-2">
+        {boardColumns.map((col) => (
+          <MobileKanbanColumn
+            key={col.id}
+            col={col}
+            tasks={tasksByColumn[col.id]}
+            onMove={moveTask}
+          />
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -508,7 +614,7 @@ function ProjectDetailHeader({
   const avatarRing = "border-2 border-[var(--dashboard-mesh-base)] dark:border-background"
 
   return (
-    <header className="px-6 pb-8 md:px-10 lg:px-16">
+    <header className="px-4 pb-5 sm:px-6 sm:pb-8 md:px-10 lg:px-16">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-4">
@@ -556,17 +662,17 @@ function ProjectDetailHeader({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
             <Button
               type="button"
               variant="outline"
-              className="h-9 gap-2 rounded-lg border-border bg-card px-4 text-foreground shadow-none hover:bg-muted/40"
+              className="h-10 flex-1 gap-2 rounded-lg border-border bg-card px-4 text-foreground shadow-none hover:bg-muted/40 sm:h-9 sm:flex-none"
               onClick={onShare}
             >
               <UsersIcon className="size-4" strokeWidth={1.75} />
               Share
             </Button>
-            <Button type="button" className="h-9 gap-1.5 rounded-lg px-4" onClick={onNewTask}>
+            <Button type="button" className="h-10 flex-1 gap-1.5 rounded-lg px-4 sm:h-9 sm:flex-none" onClick={onNewTask}>
               New Task
               <PlusIcon className="size-4" strokeWidth={2} />
             </Button>
@@ -588,30 +694,32 @@ function ProjectDetailHeader({
               }
             }}
           >
-            <TabsList
-              variant="line"
-              className="h-9 w-fit justify-start gap-0 rounded-none border-0 bg-transparent p-0"
-            >
-            {viewTabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className={cn(
-                    "h-9 flex-none gap-2 rounded-none px-3.5 py-0 text-sm font-medium text-muted-foreground transition-colors",
-                    "hover:text-foreground",
-                    "group-data-horizontal/tabs:after:bottom-[-1px]",
-                    "data-active:text-primary data-active:after:bg-primary data-active:after:h-0.5",
-                    "[&_svg]:size-4 [&_svg]:shrink-0"
-                  )}
-                >
-                  <Icon strokeWidth={1.75} />
-                  {tab.label}
-                </TabsTrigger>
-              )
-            })}
-            </TabsList>
+            <div className="max-w-full">
+              <TabsList
+                variant="line"
+                className="flex h-auto w-full flex-wrap justify-start gap-0 overflow-visible rounded-none border-0 bg-transparent p-0 group-data-horizontal/tabs:h-auto sm:h-9 sm:w-fit sm:flex-nowrap sm:group-data-horizontal/tabs:h-9"
+              >
+              {viewTabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className={cn(
+                      "h-9 min-h-9 min-w-0 flex-1 basis-[calc(33.333%-0.25rem)] gap-1.5 rounded-none px-2 py-0 text-xs font-medium text-muted-foreground transition-colors sm:flex-none sm:basis-auto sm:gap-2 sm:px-3.5 sm:text-sm",
+                      "hover:text-foreground",
+                      "group-data-horizontal/tabs:after:bottom-[-1px]",
+                      "data-active:text-primary data-active:after:bg-primary data-active:after:h-0.5",
+                      "[&_svg]:size-4 [&_svg]:shrink-0"
+                    )}
+                  >
+                    <Icon className="hidden sm:block" strokeWidth={1.75} />
+                    <span className="truncate">{tab.label}</span>
+                  </TabsTrigger>
+                )
+              })}
+              </TabsList>
+            </div>
           </Tabs>
         </div>
       </div>
@@ -628,9 +736,13 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false)
   const [shareNotice, setShareNotice] = React.useState<string | null>(null)
 
-  React.useEffect(() => {
+  // Reload persisted tasks when navigating to a different project (guarded,
+  // adjust-state-during-render instead of an effect, per React's rules).
+  const [loadedProjectSlug, setLoadedProjectSlug] = React.useState(project.slug)
+  if (loadedProjectSlug !== project.slug) {
+    setLoadedProjectSlug(project.slug)
     setTasks(loadBoardTasks(project.slug, board.tasks))
-  }, [project.slug, board.tasks])
+  }
 
   React.useEffect(() => {
     saveBoardTasks(project.slug, tasks)
@@ -657,7 +769,7 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="px-6 pt-6 pb-8 md:px-10 lg:px-16">
+      <div className="px-4 pt-4 pb-4 sm:px-6 sm:pt-6 sm:pb-8 md:px-10 lg:px-16">
         <Link
           href="/projects"
           className="w-fit text-sm font-medium text-[#9aa3b2] transition-colors hover:text-foreground"
@@ -678,9 +790,9 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
         onNewTask={handleNewTask}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pb-6 md:px-10 lg:px-16">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pb-6 sm:px-6 md:px-10 lg:px-16">
         {view === "board" ? (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden flex-wrap items-center gap-2 md:flex">
             <FilterChip label="Due Date" value="March 17 - 20" />
             <FilterChip label="Assignee" value="All" />
             <FilterChip label="Priority" value="All" />
@@ -694,7 +806,7 @@ export function ProjectBoardView({ project }: { project: ProjectSummary }) {
               onClick={() => setShowAdvancedFilters((current) => !current)}
             >
               <ClaritySliderLineIcon className="size-4" />
-              Advance Filters
+              Advanced Filters
             </Button>
             {showAdvancedFilters ? (
               <p className="w-full text-xs text-muted-foreground">

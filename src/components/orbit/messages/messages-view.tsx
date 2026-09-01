@@ -256,12 +256,18 @@ export function MessagesView() {
     }
   }, [isMobile])
 
-  React.useEffect(() => {
-    if (memberParam && conversations.some((c) => c.memberId === memberParam)) {
-      setActiveId(memberParam)
-      if (isMobile) setMobileShowInbox(false)
-    }
-  }, [memberParam, isMobile])
+  // Adjust selection during render (guarded) rather than in an effect, since
+  // this derives state from a prop (the URL) that changed this render.
+  const [appliedMemberParam, setAppliedMemberParam] = React.useState<string | null>(null)
+  if (
+    memberParam &&
+    memberParam !== appliedMemberParam &&
+    conversations.some((c) => c.memberId === memberParam)
+  ) {
+    setAppliedMemberParam(memberParam)
+    setActiveId(memberParam)
+    if (isMobile) setMobileShowInbox(false)
+  }
 
   const selectConversation = React.useCallback(
     (id: string) => {
@@ -275,12 +281,14 @@ export function MessagesView() {
     conversations.find((c) => c.id === resolvedActiveId) ?? conversations[0]
   const activeMessages = messageOverrides[active.id] ?? active.messages
   const lastMessageId = activeMessages[activeMessages.length - 1]?.id
+  const nextMessageIdRef = React.useRef(0)
 
   function handleSendMessage() {
     const body = draft.trim()
     if (!body) return
+    nextMessageIdRef.current += 1
     const message: StoredMessage = {
-      id: `m-${Date.now()}`,
+      id: `m-${active.id}-${nextMessageIdRef.current}`,
       role: "me",
       body,
       time: "Just now",
@@ -294,9 +302,9 @@ export function MessagesView() {
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden bg-transparent">
-      {/* Page toolbar — compact on small screens so the thread lands in the first viewport */}
-      <div className="flex shrink-0 flex-wrap items-end gap-x-3 gap-y-3 border-b border-border bg-transparent px-4 py-3 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-4 md:px-10 md:py-5 lg:px-12">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
+      {/* Page toolbar — desktop only; mobile uses the shell title + tab bar. */}
+      <div className="hidden shrink-0 flex-wrap items-end gap-x-4 gap-y-4 border-b border-border bg-transparent px-6 py-4 md:flex md:px-10 md:py-5 lg:px-12">
         <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
           <p className="hidden max-w-xl text-sm leading-relaxed text-muted-foreground sm:block">
             Team DMs and mentions — tied to issues and projects.
@@ -334,14 +342,14 @@ export function MessagesView() {
       </div>
 
       <div
-        className="flex min-h-0 flex-1 flex-col overflow-hidden max-md:min-h-0 md:max-h-[min(calc(100svh-9.5rem),56rem)] md:flex-row md:items-stretch"
+        className="flex h-full min-h-0 flex-1 flex-col overflow-hidden max-md:min-h-0 md:max-h-[min(calc(100svh-9.5rem),56rem)] md:flex-row md:items-stretch"
         suppressHydrationWarning
       >
         {/* Activity — two columns from md; phone toggles list vs thread with max-md:hidden (no hidden/md:flex clash) */}
         <aside
           className={cn(
-            "flex min-h-0 w-full min-w-0 flex-col border-border bg-muted/25 md:max-h-none md:w-[min(100%,26rem)] md:max-w-md md:shrink-0 md:border-b-0 md:border-r lg:max-w-lg",
-            "max-md:max-h-[min(38svh,17.5rem)] max-md:shrink-0 max-md:border-b",
+            "flex min-h-0 w-full min-w-0 flex-1 flex-col border-border bg-card/70 md:max-h-none md:w-[min(100%,26rem)] md:max-w-md md:shrink-0 md:border-b-0 md:border-r md:bg-muted/25 lg:max-w-lg",
+            "max-md:min-h-0",
             !showAside && "max-md:hidden"
           )}
         >
@@ -397,7 +405,7 @@ export function MessagesView() {
                         </AvatarFallback>
                       </Avatar>
                       {c.unread > 0 ? (
-                        <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold leading-none text-primary-foreground ring-2 ring-[var(--card)]">
+                        <span className="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold leading-none text-primary-foreground ring-2 ring-[var(--card)]">
                           {c.unread > 9 ? "9+" : c.unread}
                         </span>
                       ) : null}
@@ -617,7 +625,7 @@ export function MessagesView() {
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-border bg-card px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-2.5 md:px-6">
+          <div className="shrink-0 border-t border-border bg-card px-4 py-2 sm:px-5 sm:py-2.5 md:px-6">
             <div className="w-full rounded-lg border border-border bg-background shadow-sm">
               <textarea
                 rows={2}
@@ -732,7 +740,7 @@ export function MessagesView() {
         variant="outline"
         size="icon"
         aria-label="Help"
-        className="pointer-events-auto fixed bottom-6 right-4 z-10 size-11 rounded-full border-border bg-card shadow-md max-md:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] md:bottom-8 md:right-8"
+        className="pointer-events-auto fixed bottom-6 right-4 z-10 hidden size-11 rounded-full border-border bg-card shadow-md md:inline-flex md:bottom-8 md:right-8"
       >
         <HelpCircleIcon className="size-5 text-muted-foreground" strokeWidth={1.75} />
       </Button>

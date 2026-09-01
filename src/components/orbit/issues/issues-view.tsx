@@ -12,6 +12,7 @@ import {
   MinusIcon,
   PlusIcon,
   SearchIcon,
+  SlidersHorizontalIcon,
   XIcon,
 } from "lucide-react"
 
@@ -36,6 +37,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { loadPersistedIssues, savePersistedIssues } from "@/lib/client-store"
@@ -143,12 +151,12 @@ function FilterMenu({
             type="button"
             variant="outline"
             className={cn(
-              "h-9 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none",
+              "h-9 w-full min-w-0 shrink-0 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none sm:w-auto",
               allowClear && current && "border-primary/40 text-foreground"
             )}
           >
-            <span className="text-muted-foreground">{label}:</span>
-            <span>{current ? current.label : "Any"}</span>
+            <span className="shrink-0 text-muted-foreground">{label}:</span>
+            <span className="truncate">{current ? current.label : "Any"}</span>
             <ChevronDownIcon className="size-4 opacity-60" strokeWidth={2} />
           </Button>
         }
@@ -188,20 +196,20 @@ function AssigneeMenu({
             type="button"
             variant="outline"
             className={cn(
-              "h-9 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none",
+              "h-9 w-full min-w-0 shrink-0 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none sm:w-auto",
               current && "border-primary/40 text-foreground"
             )}
           >
-            <span className="text-muted-foreground">Assignee:</span>
+            <span className="shrink-0 text-muted-foreground">Assignee:</span>
             {current ? (
-              <span className="inline-flex items-center gap-1.5">
-                <Avatar className="size-5 ring-0" title={current.name}>
+              <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
+                <Avatar className="size-5 shrink-0 ring-0" title={current.name}>
                   <AvatarImage src={current.avatarUrl} alt="" />
                   <AvatarFallback className="text-[9px] font-semibold">
                     {memberInitials(current.name)}
                   </AvatarFallback>
                 </Avatar>
-                {current.id === CURRENT_USER.id ? "Me" : current.name}
+                <span className="truncate">{current.id === CURRENT_USER.id ? "Me" : current.name}</span>
               </span>
             ) : (
               <span>Anyone</span>
@@ -248,6 +256,64 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
   )
 }
 
+function FilterOptionGroup({
+  label,
+  value,
+  options,
+  onChange,
+  allowClear = true,
+  anyLabel = "Any",
+}: {
+  label: string
+  value: string | null
+  options: { value: string; label: string }[]
+  onChange: (value: string | null) => void
+  allowClear?: boolean
+  anyLabel?: string
+}) {
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        {label}
+      </legend>
+      <div className="flex flex-wrap gap-1.5">
+        {allowClear ? (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className={cn(
+              "h-8 rounded-full border px-3 text-sm transition-colors",
+              value === null
+                ? "border-primary/40 bg-primary/10 font-medium text-foreground"
+                : "border-border/80 bg-card text-muted-foreground"
+            )}
+          >
+            {anyLabel}
+          </button>
+        ) : null}
+        {options.map((option) => {
+          const selected = value === option.value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={cn(
+                "h-8 rounded-full border px-3 text-sm transition-colors",
+                selected
+                  ? "border-primary/40 bg-primary/10 font-medium text-foreground"
+                  : "border-border/80 bg-card text-muted-foreground"
+              )}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
 function SelectBox({
   checked,
   indeterminate = false,
@@ -271,7 +337,7 @@ function SelectBox({
         onToggle()
       }}
       className={cn(
-        "flex size-4 shrink-0 items-center justify-center rounded-[5px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        "flex size-5 shrink-0 items-center justify-center rounded-[5px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:size-4",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-foreground/30 bg-card hover:border-foreground/50"
@@ -324,7 +390,7 @@ function IssueRow({
       }}
       aria-pressed={selected}
       className={cn(
-        "group/row relative flex h-10 cursor-pointer items-center gap-2.5 px-2.5 transition-colors",
+        "group/row relative flex min-h-11 cursor-pointer items-start gap-2.5 px-2.5 py-2.5 sm:h-10 sm:items-center sm:py-0",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50",
         "before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary before:transition-opacity",
         selected
@@ -341,17 +407,31 @@ function IssueRow({
         label={checked ? `Deselect ${issue.id}` : `Select ${issue.id}`}
       />
 
-      <span title={`${issue.priority} priority`}>
+      <span title={`${issue.priority} priority`} className="mt-0.5 sm:mt-0">
         <IssuePriorityBars priority={issue.priority} />
       </span>
 
-      <span className="w-[3.75rem] shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground">
+      <span className="hidden w-[3.75rem] shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground sm:inline">
         {issue.id}
       </span>
 
-      <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-        {issue.title}
-      </span>
+      <div className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-foreground line-clamp-2 sm:truncate">
+          {issue.title}
+        </span>
+        <span
+          className={cn(
+            "mt-0.5 flex items-center gap-1.5 text-xs sm:hidden",
+            overdue
+              ? "font-medium text-[var(--status-overdue-foreground)]"
+              : "text-muted-foreground"
+          )}
+        >
+          <span className="tabular-nums">{issue.id}</span>
+          <span aria-hidden>·</span>
+          <span>{issue.dueLabel}</span>
+        </span>
+      </div>
 
       {/* Right-aligned, fixed-width metadata columns (consistent across rows). */}
       <div className="ml-auto flex shrink-0 items-center gap-3">
@@ -458,7 +538,7 @@ function StatusGroup({
           type="button"
           onClick={() => onAddIssue(status)}
           aria-label={`New issue in ${issueStatusLabel(status)}`}
-          className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:opacity-100 group-hover/header:opacity-100"
+          className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground max-md:opacity-100 md:size-6 md:opacity-0 md:focus-visible:opacity-100 md:group-hover/header:opacity-100"
         >
           <PlusIcon className="size-4" strokeWidth={2} />
         </button>
@@ -500,13 +580,20 @@ export function IssuesView() {
   const [sortKey, setSortKey] = React.useState<IssueSortKey>("priority")
   const [sortDir, setSortDir] = React.useState<SortDir>("asc")
   const [collapsed, setCollapsed] = React.useState<Set<WorkItemStatus>>(new Set())
+  const [filtersOpen, setFiltersOpen] = React.useState(false)
 
   React.useEffect(() => {
     savePersistedIssues(issues)
   }, [issues])
 
-  // Apply filters arriving from dashboard KPI cards / deep links.
-  React.useEffect(() => {
+  // Apply filters arriving from dashboard KPI cards / deep links. Adjusting
+  // state during render (guarded by a "did the params change" check) is the
+  // React-sanctioned way to sync from an external source without an effect.
+  const paramsKey = searchParams.toString()
+  const [appliedParamsKey, setAppliedParamsKey] = React.useState(paramsKey)
+  if (paramsKey !== appliedParamsKey) {
+    setAppliedParamsKey(paramsKey)
+
     const next: Partial<Filters> = {}
 
     const status = searchParams.get("status")
@@ -531,7 +618,7 @@ export function IssuesView() {
     if (Object.keys(next).length > 0) {
       setFilters((prev) => ({ ...prev, ...next }))
     }
-  }, [searchParams])
+  }
 
   const tabCounts = React.useMemo(
     () => ({
@@ -575,26 +662,19 @@ export function IssuesView() {
     return next
   }, [checkedIds, visibleIds])
 
-  // Garbage-collect ids hidden by the current tab/filters so they don't linger.
-  React.useEffect(() => {
-    setCheckedIds((prev) => {
-      if (prev.size === 0) return prev
-      let changed = false
-      const next = new Set<string>()
-      for (const id of prev) {
-        if (visibleIds.has(id)) next.add(id)
-        else changed = true
-      }
-      return changed ? next : prev
-    })
-  }, [visibleIds])
-
   const hasActiveFilters =
     filters.search.trim() !== "" ||
     filters.status !== null ||
     filters.priority !== null ||
     filters.assigneeId !== null ||
     filters.projectSlug !== null
+
+  const advancedFilterCount = [
+    filters.status,
+    filters.priority,
+    filters.assigneeId,
+    filters.projectSlug,
+  ].filter(Boolean).length
 
   const setFilter = <K extends keyof Filters>(key: K, value: Filters[K]) =>
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -676,14 +756,19 @@ export function IssuesView() {
 
   // Open the New Issue modal when deep-linked via ?new=1 (e.g. sidebar button),
   // then strip the param so repeat clicks re-trigger it.
+  const [handledNewParamsKey, setHandledNewParamsKey] = React.useState<string | null>(null)
+  if (searchParams.get("new") !== null && handledNewParamsKey !== paramsKey) {
+    setHandledNewParamsKey(paramsKey)
+    openNewIssue()
+  }
+
   React.useEffect(() => {
     if (searchParams.get("new") === null) return
-    openNewIssue()
     const params = new URLSearchParams(searchParams.toString())
     params.delete("new")
     const qs = params.toString()
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
-  }, [searchParams, openNewIssue, router, pathname])
+  }, [searchParams, router, pathname])
 
   const bulkPatch = (patch: Partial<Issue>) => {
     setIssues((prev) =>
@@ -701,28 +786,35 @@ export function IssuesView() {
 
   // Keep the last opened issue around during the panel's close animation.
   const selectedIssue = issues.find((i) => i.id === selectedIssueId) ?? null
-  const lastIssueRef = React.useRef<Issue | null>(null)
-  if (selectedIssue) lastIssueRef.current = selectedIssue
-  const panelIssue = selectedIssue ?? lastIssueRef.current
+  const [lastIssue, setLastIssue] = React.useState<Issue | null>(null)
+  if (selectedIssue && selectedIssue.id !== lastIssue?.id) {
+    setLastIssue(selectedIssue)
+  }
+  const panelIssue = selectedIssue ?? lastIssue
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-6 px-6 py-8 md:px-10 lg:px-16">
+    <div className="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-8 md:px-10 lg:px-16">
       <Tabs
         value={tab}
         onValueChange={(v) => {
           if (v === "all" || v === "active" || v === "backlog") setTab(v)
         }}
-        className="gap-6"
+        className="gap-5 sm:gap-6"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <TabsList className="inline-flex h-auto w-fit gap-0.5 rounded-lg border border-border/50 bg-muted/50 p-1 shadow-none">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <TabsList className="flex h-auto w-full flex-wrap gap-0.5 overflow-visible rounded-lg border border-border/50 bg-muted/50 p-1 shadow-none group-data-horizontal/tabs:h-auto sm:w-fit sm:flex-nowrap">
             {tabs.map((t) => (
               <TabsTrigger
                 key={t.value}
                 value={t.value}
-                className="rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors data-active:border data-active:border-border/60 data-active:bg-card data-active:text-foreground data-active:shadow-sm"
+                className="h-auto min-h-8 min-w-0 flex-1 rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors data-active:border data-active:border-border/60 data-active:bg-card data-active:text-foreground data-active:shadow-sm sm:flex-none sm:px-4"
               >
-                {t.label} ({tabCounts[t.value]})
+                <span className="truncate sm:hidden">
+                  {t.value === "all" ? "All" : t.label} ({tabCounts[t.value]})
+                </span>
+                <span className="hidden sm:inline">
+                  {t.label} ({tabCounts[t.value]})
+                </span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -730,7 +822,7 @@ export function IssuesView() {
           <Button
             type="button"
             onClick={() => openNewIssue()}
-            className="h-9 shrink-0 gap-1.5 px-4"
+            className="h-10 w-full shrink-0 gap-1.5 px-4 sm:h-9 sm:w-auto"
           >
             <PlusIcon className="size-4" strokeWidth={2} />
             New Issue
@@ -740,23 +832,44 @@ export function IssuesView() {
 
       {/* Filter bar */}
       <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs">
-            <SearchIcon
-              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-              strokeWidth={1.75}
-              aria-hidden
-            />
-            <Input
-              type="search"
-              value={filters.search}
-              onChange={(e) => setFilter("search", e.target.value)}
-              placeholder="Search issues..."
-              className="h-9 border-border/80 bg-card pl-9 shadow-none"
-              aria-label="Search issues"
-            />
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex min-w-0 items-center gap-2 sm:max-w-xs sm:flex-1">
+            <div className="relative min-w-0 flex-1">
+              <SearchIcon
+                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+              <Input
+                type="search"
+                value={filters.search}
+                onChange={(e) => setFilter("search", e.target.value)}
+                placeholder="Search issues..."
+                className="h-9 border-border/80 bg-card pl-9 shadow-none"
+                aria-label="Search issues"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              aria-expanded={filtersOpen}
+              className={cn(
+                "h-9 shrink-0 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none sm:hidden",
+                advancedFilterCount > 0 && "border-primary/40"
+              )}
+              onClick={() => setFiltersOpen(true)}
+            >
+              <SlidersHorizontalIcon className="size-4" strokeWidth={1.75} />
+              Filters
+              {advancedFilterCount > 0 ? (
+                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                  {advancedFilterCount}
+                </span>
+              ) : null}
+            </Button>
           </div>
 
+          <div className="hidden grid-cols-2 gap-2 sm:grid sm:flex sm:flex-wrap sm:items-center">
           <FilterMenu
             label="Status"
             value={filters.status}
@@ -780,7 +893,8 @@ export function IssuesView() {
             onChange={(v) => setFilter("projectSlug", v)}
           />
 
-          <div className="ml-auto flex items-center gap-1">
+          <div className="col-span-2 flex min-w-0 items-center gap-1 sm:col-span-1 sm:ml-auto">
+            <div className="min-w-0 flex-1 sm:flex-none">
             <FilterMenu
               label="Sort"
               value={sortKey}
@@ -790,6 +904,7 @@ export function IssuesView() {
                 if (v) setSortKey(v as IssueSortKey)
               }}
             />
+            </div>
             <Button
               type="button"
               variant="outline"
@@ -805,7 +920,91 @@ export function IssuesView() {
               )}
             </Button>
           </div>
+          </div>
         </div>
+
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <SheetContent
+            side="bottom"
+            className="max-h-[85dvh] gap-0 rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))]"
+          >
+            <SheetHeader className="pr-10">
+              <SheetTitle>Filters</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-2">
+              <FilterOptionGroup
+                label="Status"
+                value={filters.status}
+                options={statusOptions}
+                onChange={(v) => setFilter("status", v as IssueStatusFilter | null)}
+              />
+              <FilterOptionGroup
+                label="Priority"
+                value={filters.priority}
+                options={priorityOptions}
+                onChange={(v) => setFilter("priority", v as IssuePriority | null)}
+              />
+              <FilterOptionGroup
+                label="Assignee"
+                value={filters.assigneeId}
+                options={issueAssignees.map((member) => ({
+                  value: member.id,
+                  label: member.id === CURRENT_USER.id ? "Me" : member.name,
+                }))}
+                anyLabel="Anyone"
+                onChange={(v) => setFilter("assigneeId", v)}
+              />
+              <FilterOptionGroup
+                label="Project"
+                value={filters.projectSlug}
+                options={issueProjects.map((p) => ({ value: p.slug, label: p.title }))}
+                onChange={(v) => setFilter("projectSlug", v)}
+              />
+              <div className="space-y-2">
+                <FilterOptionGroup
+                  label="Sort"
+                  value={sortKey}
+                  options={sortOptions}
+                  allowClear={false}
+                  onChange={(v) => {
+                    if (v) setSortKey(v as IssueSortKey)
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label={`Sort direction: ${sortDir === "asc" ? "ascending" : "descending"}`}
+                  onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                  className="h-8 gap-1.5 rounded-full border-border/80 bg-card px-3 font-normal text-muted-foreground shadow-none"
+                >
+                  {sortDir === "asc" ? (
+                    <ArrowUpNarrowWideIcon className="size-3.5" strokeWidth={1.75} />
+                  ) : (
+                    <ArrowDownWideNarrowIcon className="size-3.5" strokeWidth={1.75} />
+                  )}
+                  {sortDir === "asc" ? "Ascending" : "Descending"}
+                </Button>
+              </div>
+            </div>
+            <SheetFooter className="flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setFilters((current) => ({ ...emptyFilters, search: current.search }))
+                  setSortKey("priority")
+                  setSortDir("asc")
+                }}
+              >
+                Reset
+              </Button>
+              <Button type="button" className="flex-1" onClick={() => setFiltersOpen(false)}>
+                Done
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
 
         {hasActiveFilters ? (
           <div className="flex flex-wrap items-center gap-2">

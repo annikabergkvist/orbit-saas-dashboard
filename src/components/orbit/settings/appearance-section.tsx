@@ -50,7 +50,14 @@ export function AppearanceSection() {
   const [compactMode, setCompactMode] = React.useState(false)
   const [reduceMotion, setReduceMotion] = React.useState(false)
 
+  // Theme/localStorage values are only known client-side, so this mount flag
+  // and the stored-preference reads are required to avoid a hydration
+  // mismatch / theme flash.
+  // Theme/localStorage values are only known client-side, so this mount flag
+  // and the stored-preference reads are required to avoid a hydration
+  // mismatch / theme flash.
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
     setCompactMode(readStoredBoolean(COMPACT_KEY, false))
     setReduceMotion(readStoredBoolean(REDUCE_MOTION_KEY, false))

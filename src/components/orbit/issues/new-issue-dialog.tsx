@@ -125,8 +125,11 @@ export function NewIssueDialog({
   const [projectSlug, setProjectSlug] = React.useState(issueProjects[0]?.slug ?? "")
   const [dueDate, setDueDate] = React.useState("")
 
-  // Reset the form each time the dialog opens.
-  React.useEffect(() => {
+  // Reset the form each time the dialog opens (adjust state during render,
+  // guarded on the open transition, rather than in an effect).
+  const [wasOpen, setWasOpen] = React.useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) {
       setTitle("")
       setDescription("")
@@ -145,7 +148,7 @@ export function NewIssueDialog({
       setProjectSlug(defaultProject)
       setDueDate("")
     }
-  }, [open, initialStatus, initialProjectSlug, initialAssigneeId])
+  }
 
   const assignee = getAssignee(assigneeId)
   const projectTitle =
@@ -174,7 +177,7 @@ export function NewIssueDialog({
           <DialogTitle>New issue</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 pb-2">
             <div className="space-y-1.5">
               <FieldLabel>Title</FieldLabel>
@@ -199,7 +202,7 @@ export function NewIssueDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <SelectField label="Status" current={BOARD_COLUMN_LABELS[status]}>
                 <DropdownMenuRadioGroup
                   value={status}

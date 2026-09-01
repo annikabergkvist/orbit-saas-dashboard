@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   CalendarIcon,
   CheckCheckIcon,
@@ -38,12 +38,21 @@ import {
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NewProjectDialog } from "@/components/orbit/projects/new-project-dialog"
+import {
+  getCurrentUserWithPatch,
+  loadPersistedProjects,
+  savePersistedProjects,
+  subscribeStore,
+} from "@/lib/client-store"
 import { cn } from "@/lib/utils"
 import { isProjectLifecycle } from "@/lib/status"
 import {
+  buildProjectFromValues,
   listProjects,
   projectSortOptions,
   projectsSeed,
+  type NewProjectValues,
   type ProjectLifecycle,
   type ProjectSort,
   type ProjectSummary,
@@ -201,13 +210,60 @@ function ProjectGrid({
 const projectSortValues = new Set<ProjectSort>(projectSortOptions.map((o) => o.value))
 
 export function ProjectsOverview() {
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [projects, setProjects] = React.useState(() => loadPersistedProjects(projectsSeed))
   const [tab, setTab] = React.useState<"all" | ProjectLifecycle>("all")
   const [search, setSearch] = React.useState("")
   const [sort, setSort] = React.useState<ProjectSort>("name-asc")
   const [attentionOnly, setAttentionOnly] = React.useState(false)
+  const [newProjectOpen, setNewProjectOpen] = React.useState(false)
 
-  React.useEffect(() => {
+  React.useEffect(() => subscribeStore(() => setProjects(loadPersistedProjects(projectsSeed))), [])
+
+  const persistProjects = React.useCallback((next: ProjectSummary[]) => {
+    setProjects(next)
+    savePersistedProjects(next)
+  }, [])
+
+  const createProject = React.useCallback(
+    (values: NewProjectValues) => {
+      const owner = getCurrentUserWithPatch()
+      const project = buildProjectFromValues(
+        values,
+        projects,
+        {
+          id: owner.id,
+          name: owner.name,
+          avatarUrl: owner.avatarUrl,
+        }
+      )
+      const next = [project, ...projects]
+      persistProjects(next)
+      setNewProjectOpen(false)
+      setTab("planning")
+      setAttentionOnly(false)
+      setSearch("")
+      router.push(`/projects/${project.slug}`)
+    },
+    [persistProjects, projects, router]
+  )
+
+  const openNewProject = React.useCallback(() => {
+    setNewProjectOpen(true)
+  }, [])
+
+  // Apply state arriving from the URL (deep links / KPI cards). Adjusting
+  // state during render (guarded by a "did the params change" check) is the
+  // React-sanctioned way to sync from an external source without an effect.
+  const paramsKey = searchParams.toString()
+  const [appliedParamsKey, setAppliedParamsKey] = React.useState<string | null>(null)
+  if (paramsKey !== appliedParamsKey) {
+    setAppliedParamsKey(paramsKey)
+
+    if (searchParams.get("new") !== null) openNewProject()
+
     const tabParam = searchParams.get("tab")
     if (tabParam === "all") {
       setTab("all")
@@ -224,22 +280,30 @@ export function ProjectsOverview() {
       setAttentionOnly(true)
       setTab("all")
     }
-  }, [searchParams])
+  }
+
+  React.useEffect(() => {
+    if (searchParams.get("new") === null) return
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("new")
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [searchParams, router, pathname])
 
   const tabCounts = React.useMemo(() => {
     const counts: Record<"all" | ProjectLifecycle, number> = {
-      all: projectsSeed.length,
+      all: projects.length,
       planning: 0,
       active: 0,
       in_review: 0,
       completed: 0,
       launched: 0,
     }
-    for (const project of projectsSeed) {
+    for (const project of projects) {
       counts[project.lifecycle] += 1
     }
     return counts
-  }, [])
+  }, [projects])
 
   const filteredProjects = React.useMemo(
     () =>
@@ -248,14 +312,15 @@ export function ProjectsOverview() {
         sort,
         search,
         needsAttention: attentionOnly,
+        source: projects,
       }),
-    [tab, search, sort, attentionOnly]
+    [tab, search, sort, attentionOnly, projects]
   )
 
   const sortLabel = sortOptions.find((o) => o.value === sort)?.label ?? "Sort"
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-8 px-6 py-8 md:px-10 lg:px-16">
+    <div className="flex min-h-0 flex-1 flex-col gap-6 px-4 py-5 sm:gap-8 sm:px-6 sm:py-8 md:px-10 lg:px-16">
       <Tabs
         value={tab}
         onValueChange={(v) => {
@@ -266,20 +331,27 @@ export function ProjectsOverview() {
         }}
         className="gap-8"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <TabsList className="inline-flex h-auto w-fit gap-0.5 rounded-lg border border-border/50 bg-muted/50 p-1 shadow-none">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <TabsList className="flex h-auto w-full flex-wrap gap-0.5 overflow-visible rounded-lg border border-border/50 bg-muted/50 p-1 shadow-none group-data-horizontal/tabs:h-auto sm:w-fit sm:flex-nowrap">
             {filterTabs.map((t) => (
               <TabsTrigger
                 key={t.value}
                 value={t.value}
-                className="rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors data-active:border data-active:border-border/60 data-active:bg-card data-active:text-foreground data-active:shadow-sm"
+                className="h-auto min-h-8 min-w-0 flex-1 basis-[calc(33.333%-0.125rem)] rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors data-active:border data-active:border-border/60 data-active:bg-card data-active:text-foreground data-active:shadow-sm sm:flex-none sm:basis-auto sm:px-4 sm:text-sm"
               >
-                {t.label} ({tabCounts[t.value]})
+                <span className="truncate">
+                  {t.label}
+                  <span className="text-muted-foreground/80"> ({tabCounts[t.value]})</span>
+                </span>
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <Button type="button" className="h-9 shrink-0 gap-1.5 px-4">
+          <Button
+            type="button"
+            onClick={openNewProject}
+            className="h-10 w-full shrink-0 gap-1.5 px-4 sm:h-9 sm:w-auto"
+          >
             <PlusIcon className="size-4" strokeWidth={2} />
             New Project
           </Button>
@@ -366,6 +438,12 @@ export function ProjectsOverview() {
           />
         </TabsContent>
       </Tabs>
+
+      <NewProjectDialog
+        open={newProjectOpen}
+        onOpenChange={setNewProjectOpen}
+        onCreate={createProject}
+      />
     </div>
   )
 }

@@ -27,7 +27,7 @@ import {
   dashboardProjectSortOptions,
   DASHBOARD_PROJECTS_VISIBLE,
   getDashboardProjects,
-  getProjectAccentColor,
+  getDashboardProgressRingColor,
   type DashboardProjectSort,
 } from "@/lib/projects-data"
 import { cn } from "@/lib/utils"
@@ -68,12 +68,14 @@ function ProgressRing({
         cy={cy}
         r={radius}
         fill="none"
-        stroke={color}
+        stroke="currentColor"
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={dashOffset}
         transform={`rotate(-90 ${cx} ${cy})`}
+        className="progress-ring-fill"
+        style={{ color }}
       />
     </g>
   )
@@ -85,14 +87,13 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
 
   const allProjects = React.useMemo(() => getDashboardProjects(sort), [sort])
   const totalPages = Math.max(1, Math.ceil(allProjects.length / DASHBOARD_PROJECTS_VISIBLE))
-
-  React.useEffect(() => {
-    setPage((current) => Math.min(current, totalPages - 1))
-  }, [totalPages, sort])
+  // Clamp for display rather than syncing `page` via an effect; `setPage`
+  // (used by pagination controls) still holds the raw requested page.
+  const clampedPage = Math.min(page, totalPages - 1)
 
   const visibleProjects = allProjects.slice(
-    page * DASHBOARD_PROJECTS_VISIBLE,
-    page * DASHBOARD_PROJECTS_VISIBLE + DASHBOARD_PROJECTS_VISIBLE
+    clampedPage * DASHBOARD_PROJECTS_VISIBLE,
+    clampedPage * DASHBOARD_PROJECTS_VISIBLE + DASHBOARD_PROJECTS_VISIBLE
   )
 
   const projectRings = visibleProjects.map((project, index) => ({
@@ -100,7 +101,7 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
     name: project.title,
     days: project.activeDays,
     progress: project.progress,
-    color: getProjectAccentColor(project),
+    color: getDashboardProgressRingColor(index),
     radius: RING_RADII[index] ?? 42,
   }))
 
@@ -116,9 +117,9 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
     dashboardProjectSortOptions.find((option) => option.value === sort)?.label ??
     "Sort"
 
-  const rangeStart = allProjects.length === 0 ? 0 : page * DASHBOARD_PROJECTS_VISIBLE + 1
+  const rangeStart = allProjects.length === 0 ? 0 : clampedPage * DASHBOARD_PROJECTS_VISIBLE + 1
   const rangeEnd = Math.min(
-    (page + 1) * DASHBOARD_PROJECTS_VISIBLE,
+    (clampedPage + 1) * DASHBOARD_PROJECTS_VISIBLE,
     allProjects.length
   )
 
@@ -180,7 +181,7 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
       <CardContent className="flex flex-1 flex-col px-7 pb-3">
         <div className="relative mx-auto flex w-full max-w-[250px] flex-1 flex-col items-center justify-center py-1">
           <div
-            className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_58%,rgb(124_58_237/0.08),transparent_68%)]"
+            className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_58%,rgb(124_58_237/0.08),transparent_68%)] dark:bg-[radial-gradient(circle_at_50%_58%,rgb(88_28_135/0.18),transparent_68%)]"
             aria-hidden
           />
 
@@ -202,7 +203,7 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
               <p className="text-[11px] font-medium text-muted-foreground">
                 Avg. progress
               </p>
-              <p className="mt-0.5 text-4xl font-bold tracking-tight text-foreground">
+              <p className="mt-0.5 text-4xl font-bold tracking-tight text-foreground dark:bg-gradient-to-br dark:from-violet-100 dark:to-violet-400 dark:bg-clip-text dark:text-transparent">
                 {overallCompleted}%
               </p>
             </div>
@@ -253,7 +254,7 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
                 variant="outline"
                 size="icon"
                 className="size-7 border-border/80 bg-muted/30 shadow-none"
-                disabled={page === 0}
+                disabled={clampedPage === 0}
                 aria-label="Previous projects"
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
               >
@@ -264,7 +265,7 @@ export function ProjectsProgressCard({ className }: { className?: string }) {
                 variant="outline"
                 size="icon"
                 className="size-7 border-border/80 bg-muted/30 shadow-none"
-                disabled={page >= totalPages - 1}
+                disabled={clampedPage >= totalPages - 1}
                 aria-label="Next projects"
                 onClick={() =>
                   setPage((current) => Math.min(totalPages - 1, current + 1))

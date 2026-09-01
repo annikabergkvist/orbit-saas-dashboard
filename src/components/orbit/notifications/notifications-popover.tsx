@@ -11,8 +11,15 @@ import {
   type Notification,
 } from "@/lib/notifications"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -222,49 +229,164 @@ export function NotificationsPopover({
   }
 
   const unreadNotifications = notifications.filter(isUnread)
+  const isMobile = useIsMobile()
+
+  function handleOpenChange(open: boolean) {
+    setPopoverOpen(open)
+    if (open) setNotificationsTab("all")
+  }
+
+  const bellButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label={
+        unreadCount > 0
+          ? `Notifications (${unreadCount} unread)`
+          : "Notifications"
+      }
+      className={cn("relative", triggerClassName)}
+      onClick={isMobile ? () => handleOpenChange(true) : undefined}
+    >
+      <span className="relative inline-flex">
+        <BellIcon
+          className={cn("size-5", iconClassName)}
+          strokeWidth={1.75}
+        />
+        {unreadCount > 0 ? (
+          <span
+            className={cn(
+              "absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-card",
+              unreadDotClassName
+            )}
+            aria-hidden="true"
+          />
+        ) : null}
+      </span>
+    </Button>
+  )
+
+  const panel = (
+    <>
+      <div className="flex items-start justify-between gap-3 px-4 py-3 max-md:pr-12">
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">Notifications</p>
+          <p className="truncate text-sm font-semibold text-foreground">
+            {unreadCount > 0
+              ? `${unreadCount} unread`
+              : "You're all caught up"}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="h-auto shrink-0 px-0 py-0 text-xs text-muted-foreground hover:text-foreground"
+          onClick={markAllAsRead}
+          disabled={unreadCount === 0}
+        >
+          Mark all as read
+        </Button>
+      </div>
+
+      <Separator className="my-0" />
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <Tabs
+          value={notificationsTab}
+          onValueChange={(value) => {
+            if (value === "unread" || value === "all") {
+              setNotificationsTab(value)
+            }
+          }}
+        >
+          <TabsList className="w-full justify-between">
+            <TabsTrigger value="unread" className="flex-1 justify-center">
+              Unread
+              {unreadCount > 0 ? (
+                <span className="ml-1.5 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                  {unreadCount}
+                </span>
+              ) : null}
+            </TabsTrigger>
+            <TabsTrigger value="all" className="flex-1 justify-center">
+              All
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="unread" className="mt-3">
+            <div className="md:max-h-[420px] md:overflow-auto">
+              {unreadNotifications.length === 0 ? (
+                <div className="rounded-sm px-3 py-8 text-center text-sm text-muted-foreground">
+                  You&apos;re all caught up.
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {unreadNotifications.map((n) => (
+                    <NotificationRow
+                      key={n.id}
+                      notification={n}
+                      onMarkRead={markRead}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="all" className="mt-3">
+            <div className="md:max-h-[420px] md:overflow-auto">
+              <div className="space-y-1">
+                {notifications.map((n) => (
+                  <NotificationRow
+                    key={n.id}
+                    notification={n}
+                    onMarkRead={markRead}
+                  />
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {unreadCount === 0 && notificationsTab === "all" ? (
+        <>
+          <Separator className="my-0" />
+          <div className="px-4 py-3 text-center text-xs text-muted-foreground">
+            You&apos;re all caught up
+          </div>
+        </>
+      ) : null}
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <>
+        {bellButton}
+        <Dialog open={popoverOpen} onOpenChange={handleOpenChange}>
+          <DialogContent
+            className="flex flex-col gap-0 bg-background p-0"
+            showCloseButton
+          >
+            <DialogHeader className="sr-only">
+              <DialogTitle>Notifications</DialogTitle>
+            </DialogHeader>
+            {panel}
+          </DialogContent>
+        </Dialog>
+      </>
+    )
+  }
 
   return (
     <TooltipProvider>
-      <Popover
-        open={popoverOpen}
-        onOpenChange={(open) => {
-          setPopoverOpen(open)
-          if (open) setNotificationsTab("all")
-        }}
-      >
+      <Popover open={popoverOpen} onOpenChange={handleOpenChange}>
         <Tooltip>
           <TooltipTrigger
             render={
-              <PopoverTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={
-                      unreadCount > 0
-                        ? `Notifications (${unreadCount} unread)`
-                        : "Notifications"
-                    }
-                    className={cn("relative", triggerClassName)}
-                  >
-                    <span className="relative inline-flex">
-                      <BellIcon
-                        className={cn("size-5", iconClassName)}
-                        strokeWidth={1.75}
-                      />
-                      {unreadCount > 0 ? (
-                        <span
-                          className={cn(
-                            "absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-card",
-                            unreadDotClassName
-                          )}
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                    </span>
-                  </Button>
-                }
-              />
+              <PopoverTrigger render={bellButton} />
             }
           />
           {unreadCount > 0 ? (
@@ -278,98 +400,10 @@ export function NotificationsPopover({
           align="end"
           side="bottom"
           sideOffset={8}
-          className="w-[380px] overflow-hidden rounded-md p-0 shadow-lg ring-1 ring-foreground/5"
+          glass
+          className="flex w-[min(calc(100vw-1.5rem),380px)] flex-col overflow-hidden rounded-xl p-0"
         >
-          <div className="flex items-start justify-between gap-3 px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Notifications</p>
-              <p className="truncate text-sm font-semibold text-foreground">
-                {unreadCount > 0
-                  ? `${unreadCount} unread`
-                  : "You're all caught up"}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto shrink-0 px-0 py-0 text-xs text-muted-foreground hover:text-foreground"
-              onClick={markAllAsRead}
-              disabled={unreadCount === 0}
-            >
-              Mark all as read
-            </Button>
-          </div>
-
-          <Separator className="my-0" />
-
-          <div className="px-4 py-3">
-            <Tabs
-              value={notificationsTab}
-              onValueChange={(value) => {
-                if (value === "unread" || value === "all") {
-                  setNotificationsTab(value)
-                }
-              }}
-            >
-              <TabsList className="w-full justify-between">
-                <TabsTrigger value="unread" className="flex-1 justify-center">
-                  Unread
-                  {unreadCount > 0 ? (
-                    <span className="ml-1.5 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                      {unreadCount}
-                    </span>
-                  ) : null}
-                </TabsTrigger>
-                <TabsTrigger value="all" className="flex-1 justify-center">
-                  All
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="unread" className="mt-3">
-                <div className="max-h-[420px] overflow-auto">
-                  {unreadNotifications.length === 0 ? (
-                    <div className="rounded-sm px-3 py-8 text-center text-sm text-muted-foreground">
-                      You&apos;re all caught up.
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      {unreadNotifications.map((n) => (
-                        <NotificationRow
-                          key={n.id}
-                          notification={n}
-                          onMarkRead={markRead}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="all" className="mt-3">
-                <div className="max-h-[420px] overflow-auto">
-                  <div className="space-y-1">
-                    {notifications.map((n) => (
-                      <NotificationRow
-                        key={n.id}
-                        notification={n}
-                        onMarkRead={markRead}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {unreadCount === 0 && notificationsTab === "all" ? (
-            <>
-              <Separator className="my-0" />
-              <div className="px-4 py-3 text-center text-xs text-muted-foreground">
-                You&apos;re all caught up
-              </div>
-            </>
-          ) : null}
+          {panel}
         </PopoverContent>
       </Popover>
     </TooltipProvider>

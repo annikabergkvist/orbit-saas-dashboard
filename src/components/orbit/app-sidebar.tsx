@@ -162,10 +162,13 @@ export function OrbitAppSidebar() {
                             "group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:min-w-9 group-data-[collapsible=icon]:shrink-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
 
                             "group-hover/menu-button:bg-white/20 group-hover/menu-button:backdrop-blur-sm group-hover/menu-button:text-foreground",
+                            "dark:group-hover/menu-button:bg-violet-950/45 dark:group-hover/menu-button:text-violet-100",
 
                             "group-data-[active]/menu-button:bg-white/45 group-data-[active]/menu-button:font-semibold group-data-[active]/menu-button:text-foreground group-data-[active]/menu-button:shadow-sm",
+                            "group-data-[active]/menu-button:backdrop-blur-md group-data-[active]/menu-button:ring-1 group-data-[active]/menu-button:ring-white/50",
 
-                            "group-data-[active]/menu-button:backdrop-blur-md group-data-[active]/menu-button:ring-1 group-data-[active]/menu-button:ring-white/50"
+                            "dark:group-data-[active]/menu-button:bg-violet-950/70 dark:group-data-[active]/menu-button:text-violet-100 dark:group-data-[active]/menu-button:ring-violet-500/30",
+                            "dark:group-data-[active]/menu-button:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08),0_0_18px_rgb(88_28_135_/_0.35)]"
 
                           )}
 
@@ -197,7 +200,7 @@ export function OrbitAppSidebar() {
 
                           {showUnread ? (
 
-                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[0.65rem] font-semibold leading-none text-primary-foreground group-data-[collapsible=icon]:hidden">
+                            <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[0.65rem] font-semibold leading-none text-primary-foreground group-data-[collapsible=icon]:hidden">
 
                               {unread > 99 ? "99+" : unread}
 

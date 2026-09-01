@@ -97,7 +97,7 @@ export function MyTasksCard() {
             return (
               <div
                 key={task.id}
-                className="flex overflow-hidden rounded-xl border border-foreground/10 bg-card transition-colors hover:bg-muted/30"
+                className="flex overflow-hidden rounded-xl border border-foreground/10 bg-card transition-colors hover:bg-muted/30 dashboard-inset-panel"
               >
                 <div
                   className="w-1 shrink-0 self-stretch"

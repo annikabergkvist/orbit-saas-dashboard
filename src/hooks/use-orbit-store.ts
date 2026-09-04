@@ -2,14 +2,14 @@
 
 import * as React from "react"
 
-import { getCurrentUserWithPatch, subscribeStore, type UserProfilePatch } from "@/lib/client-store"
+import { getCurrentUser, subscribeStore } from "@/lib/client-store"
 import type { TeamMember } from "@/lib/team-data"
 
 export function useCurrentUser(): TeamMember {
-  const [user, setUser] = React.useState<TeamMember>(() => getCurrentUserWithPatch())
+  const [user, setUser] = React.useState<TeamMember>(() => getCurrentUser())
 
   React.useEffect(() => {
-    return subscribeStore(() => setUser(getCurrentUserWithPatch()))
+    return subscribeStore(() => setUser(getCurrentUser()))
   }, [])
 
   return user
@@ -24,5 +24,3 @@ export function useStoreValue<T>(read: () => T): T {
 
   return value
 }
-
-export type { UserProfilePatch }

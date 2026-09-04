@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getInitials } from "@/lib/format"
 import {
   getDashboardTimelineProjects,
   getProjectTypeAccentColor,
@@ -21,7 +22,7 @@ import { cn } from "@/lib/utils"
 
 const SPRINTS = ["Sprint 1", "Sprint 2", "Sprint 3", "Sprint 4"] as const
 
-const RANGE_LABEL = "15 Jan – 30 Jun"
+const RANGE_LABEL = "12 Oct – 21 Oct"
 const TOTAL_DAYS = 22
 const PLOT_HEIGHT = 400
 const BAR_HEIGHT = 44
@@ -43,14 +44,6 @@ const Y_AXIS_DATES = [
 const PLOT_ROWS = Y_AXIS_DATES.length
 
 const timelineProjects = getDashboardTimelineProjects()
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("")
-}
 
 function TaskBar({
   project,
@@ -105,7 +98,7 @@ function TaskBar({
           >
             <AvatarImage src={assignee.avatarUrl} alt={assignee.name} />
             <AvatarFallback className="bg-muted text-[9px] font-semibold">
-              {initials(assignee.name)}
+              {getInitials(assignee.name)}
             </AvatarFallback>
           </Avatar>
         ))}

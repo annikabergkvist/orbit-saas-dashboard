@@ -1,6 +1,6 @@
 import type { WorkItemStatus } from "@/lib/status"
 import { isDueOverdue, parseDueLabel, projectsSeed } from "@/lib/projects-data"
-import { CURRENT_USER_ID, teamMembersSeed } from "@/lib/team-data"
+import { CURRENT_USER_ID, getCurrentUser, teamMembersSeed } from "@/lib/team-data"
 
 export type IssuePriority = "low" | "medium" | "high"
 
@@ -40,27 +40,28 @@ export type IssueStatusFilter = WorkItemStatus | "overdue"
 export type IssueSortKey = "priority" | "due" | "created" | "title"
 export type SortDir = "asc" | "desc"
 
-/**
- * Signed-in user — single source of truth for "assigned to me".
- * Mirrors the user in the app shell (dashboard-shell.tsx).
- */
-export const CURRENT_USER: IssueAssignee = {
-  id: CURRENT_USER_ID,
-  name: teamMembersSeed.find((m) => m.id === CURRENT_USER_ID)!.name,
-  avatarUrl: teamMembersSeed.find((m) => m.id === CURRENT_USER_ID)!.avatarUrl,
-}
-
-/** Curated roster used for issue assignment — derived from team-data. */
-export const issueAssignees: IssueAssignee[] = teamMembersSeed.map(({ id, name, avatarUrl }) => ({
+const issueAssigneesSeed: IssueAssignee[] = teamMembersSeed.map(({ id, name, avatarUrl }) => ({
   id,
   name,
   avatarUrl,
 }))
 
-const assigneeById = new Map(issueAssignees.map((a) => [a.id, a]))
+const assigneeById = new Map(issueAssigneesSeed.map((a) => [a.id, a]))
+
+function withCurrentUserPatch(assignee: IssueAssignee): IssueAssignee {
+  if (assignee.id !== CURRENT_USER_ID) return assignee
+  const user = getCurrentUser()
+  return { id: user.id, name: user.name, avatarUrl: user.avatarUrl }
+}
 
 export function getAssignee(id: string): IssueAssignee | undefined {
-  return assigneeById.get(id)
+  const base = assigneeById.get(id)
+  return base ? withCurrentUserPatch(base) : undefined
+}
+
+/** Assignment roster — current user reflects Settings profile edits. */
+export function getIssueAssignees(): IssueAssignee[] {
+  return issueAssigneesSeed.map(withCurrentUserPatch)
 }
 
 export { getProjectTitle } from "@/lib/team-data"
@@ -372,8 +373,8 @@ export function getDashboardOpenIssuePreviews(
   return issuesSeed
     .filter((issue) => {
       if (issue.status === "completed") return false
-      if (scope === "mine") return issue.assigneeId === CURRENT_USER.id
-      return issue.assigneeId !== CURRENT_USER.id
+      if (scope === "mine") return issue.assigneeId === CURRENT_USER_ID
+      return issue.assigneeId !== CURRENT_USER_ID
     })
     .slice(0, limit)
     .map((issue) => {

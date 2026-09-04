@@ -180,10 +180,6 @@ export function projectNeedsAttention(project: ProjectSummary): boolean {
   )
 }
 
-export function countActiveProjects(): number {
-  return projectsSeed.filter((p) => p.lifecycle === "active").length
-}
-
 export function countProjectsNeedingAttention(): number {
   return projectsSeed.filter(projectNeedsAttention).length
 }

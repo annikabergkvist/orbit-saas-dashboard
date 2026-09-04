@@ -2,14 +2,13 @@
 
 import * as React from "react"
 
-const COMPACT_KEY = "orbit-density-compact"
-const REDUCE_MOTION_KEY = "orbit-reduce-motion"
+import { STORAGE_KEYS } from "@/lib/storage-keys"
 
 /** Applies persisted appearance prefs on first load (before visiting Settings). */
 export function AppearancePreferencesInit() {
   React.useEffect(() => {
-    const compact = window.localStorage.getItem(COMPACT_KEY) === "true"
-    const reduceMotion = window.localStorage.getItem(REDUCE_MOTION_KEY) === "true"
+    const compact = window.localStorage.getItem(STORAGE_KEYS.densityCompact) === "true"
+    const reduceMotion = window.localStorage.getItem(STORAGE_KEYS.reduceMotion) === "true"
 
     if (compact) {
       document.documentElement.setAttribute("data-density", "compact")

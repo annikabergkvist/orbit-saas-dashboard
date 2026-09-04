@@ -4,7 +4,6 @@ import * as React from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import {
-  ChevronDownIcon,
   ClipboardListIcon,
   MessageCircleIcon,
   PlusIcon,
@@ -17,17 +16,12 @@ import { TeamDetailPanel } from "@/components/orbit/team/team-detail-panel"
 import { InviteMemberDialog } from "@/components/orbit/team/invite-member-dialog"
 import { PresenceDot } from "@/components/orbit/team/presence-dot"
 import { WorkloadBar } from "@/components/orbit/team/workload-bar"
+import { FilterMenu } from "@/components/orbit/filter-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { getInitials } from "@/lib/format"
 import { subscribeStore } from "@/lib/client-store"
 import { issueProjects, issuesSeed } from "@/lib/issues-data"
 import {
@@ -38,66 +32,8 @@ import {
   type TeamRoleGroup,
 } from "@/lib/team-data"
 
-const ANY = "__any__"
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
-}
-
-function FilterMenu({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: string | null
-  options: { value: string; label: string }[]
-  onChange: (value: string | null) => void
-}) {
-  const current = options.find((o) => o.value === value)
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            type="button"
-            variant="outline"
-              className={cn(
-              "h-9 w-full min-w-0 shrink-0 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none sm:w-auto",
-              current && "border-primary/40 text-foreground"
-            )}
-          >
-            <span className="shrink-0 text-muted-foreground">{label}:</span>
-            <span className="truncate">{current ? current.label : "Any"}</span>
-            <ChevronDownIcon className="size-4 opacity-60" strokeWidth={2} />
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="start" className="min-w-[12rem]">
-        <DropdownMenuRadioGroup
-          value={value ?? ANY}
-          onValueChange={(v) => onChange(v === ANY ? null : v)}
-        >
-          <DropdownMenuRadioItem value={ANY}>Any {label.toLowerCase()}</DropdownMenuRadioItem>
-          {options.map((o) => (
-            <DropdownMenuRadioItem key={o.value} value={o.value}>
-              {o.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
 const quickActionClassName =
-  "size-8 border-border/80 bg-card/80 text-muted-foreground shadow-none transition-all duration-200 hover:border-border hover:bg-muted/50 hover:text-foreground hover:shadow-[0_1px_4px_rgba(15,23,42,0.06)]"
+  "size-8 border-border/80 bg-card/80 text-muted-foreground shadow-none transition-all duration-200 hover:border-border hover:bg-muted/50 hover:text-foreground"
 
 function TeamMemberCard({
   member,
@@ -123,8 +59,8 @@ function TeamMemberCard({
       }}
       className={cn(
         "group glass-subtle panel-glass-subtle relative flex h-full flex-col gap-3 rounded-xl p-4",
-        "cursor-pointer transition-[transform,box-shadow] duration-300 ease-out",
-        "hover:-translate-y-px hover:shadow-[0_4px_18px_rgba(15,23,42,0.07)]",
+        "cursor-pointer transition-transform duration-300 ease-out",
+        "hover:-translate-y-px",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
         selected && "ring-1 ring-primary/40"
       )}
@@ -136,7 +72,7 @@ function TeamMemberCard({
             <Avatar className="size-12 ring-0">
               <AvatarImage src={member.avatarUrl} alt="" />
               <AvatarFallback className="text-sm font-semibold">
-                {memberInitials(member.name)}
+                {getInitials(member.name)}
               </AvatarFallback>
             </Avatar>
             <PresenceDot presence={member.presence} />

@@ -18,20 +18,21 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  CURRENT_USER,
   getIssuesForAssignee,
   issuesSeed,
   type Issue,
 } from "@/lib/issues-data"
+import { CURRENT_USER_ID } from "@/lib/team-data"
 import {
   loadPersistedIssues,
   savePersistedIssues,
   subscribeStore,
 } from "@/lib/client-store"
+import { completedTitleClass } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 function readMyTasks(): Issue[] {
-  return getIssuesForAssignee(CURRENT_USER.id, loadPersistedIssues(issuesSeed))
+  return getIssuesForAssignee(CURRENT_USER_ID, loadPersistedIssues(issuesSeed))
 }
 
 export function MyTasksCard() {
@@ -56,7 +57,7 @@ export function MyTasksCard() {
         : task
     )
     savePersistedIssues(updated)
-    setTasks(getIssuesForAssignee(CURRENT_USER.id, updated))
+    setTasks(getIssuesForAssignee(CURRENT_USER_ID, updated))
   }
 
   return (
@@ -113,8 +114,7 @@ export function MyTasksCard() {
                       <div
                         className={cn(
                           "mt-1 text-sm font-semibold",
-                          isDone &&
-                            "text-[#9aa3b2] line-through decoration-[#949ca6] decoration-1"
+                          isDone && completedTitleClass
                         )}
                       >
                         {task.title}

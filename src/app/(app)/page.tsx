@@ -15,9 +15,9 @@ import { ProjectTimelineCard } from "@/components/orbit/projects/project-timelin
 import { ProjectsProgressCard } from "@/components/orbit/projects/projects-progress-card"
 import {
   countOpenIssuesForAssignee,
-  CURRENT_USER,
   getIssuesForAssignee,
 } from "@/lib/issues-data"
+import { CURRENT_USER_ID } from "@/lib/team-data"
 import {
   countProjectsNeedingAttention,
   getDashboardKpiCounts,
@@ -28,7 +28,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 // Annika's tasks — same data as /issues and the Assigned to Me KPI.
-const myIssues = getIssuesForAssignee(CURRENT_USER.id)
+const myIssues = getIssuesForAssignee(CURRENT_USER_ID)
 
 // Live counts so the headline KPIs stay in sync with project/task data.
 const kpiCounts = {
@@ -38,7 +38,7 @@ const kpiCounts = {
       dueLabel: issue.dueLabel,
     }))
   ),
-  assignedToMe: countOpenIssuesForAssignee(CURRENT_USER.id),
+  assignedToMe: countOpenIssuesForAssignee(CURRENT_USER_ID),
 }
 
 const needsAttentionCount = countProjectsNeedingAttention()

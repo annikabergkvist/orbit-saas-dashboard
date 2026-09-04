@@ -12,9 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { BOARD_COLUMN_LABELS, type WorkItemStatus } from "@/lib/status"
+import { getInitials, withMeLabel } from "@/lib/format"
 import {
-  CURRENT_USER,
-  issueAssignees,
+  getIssueAssignees,
   type IssuePriority,
 } from "@/lib/issues-data"
 
@@ -24,15 +24,6 @@ const priorityValues: { value: IssuePriority; label: string }[] = [
   { value: "medium", label: "Medium" },
   { value: "low", label: "Low" },
 ]
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
-}
 
 function MenuButton({ label }: { label: string }) {
   return (
@@ -109,7 +100,7 @@ export function BulkActionBar({
           <DropdownMenu>
             <DropdownMenuTrigger render={<MenuButton label="Assignee" />} />
             <DropdownMenuContent align="center" className="min-w-[13rem]">
-              {issueAssignees.map((member) => (
+              {getIssueAssignees().map((member) => (
                 <DropdownMenuItem
                   key={member.id}
                   onClick={() => onSetAssignee(member.id)}
@@ -118,10 +109,10 @@ export function BulkActionBar({
                     <Avatar className="size-5 ring-0" title={member.name}>
                       <AvatarImage src={member.avatarUrl} alt="" />
                       <AvatarFallback className="text-[9px] font-semibold">
-                        {memberInitials(member.name)}
+                        {getInitials(member.name)}
                       </AvatarFallback>
                     </Avatar>
-                    {member.id === CURRENT_USER.id ? `${member.name} (Me)` : member.name}
+                    {withMeLabel(member.id, member.name)}
                   </span>
                 </DropdownMenuItem>
               ))}

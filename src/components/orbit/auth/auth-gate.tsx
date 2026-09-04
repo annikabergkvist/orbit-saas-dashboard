@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 
+import { OrbitBootLoader } from "@/components/orbit/orbit-boot-loader"
 import { getAuthSession } from "@/lib/client-store"
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
@@ -21,11 +22,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [router])
 
   if (!ready) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-transparent">
-        <p className="text-sm text-muted-foreground">Loading Orbit…</p>
-      </div>
-    )
+    return <OrbitBootLoader />
   }
 
   return <>{children}</>

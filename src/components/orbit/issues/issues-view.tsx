@@ -27,6 +27,7 @@ import {
   NewIssueDialog,
   type NewIssueValues,
 } from "@/components/orbit/issues/new-issue-dialog"
+import { FilterMenu } from "@/components/orbit/filter-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,15 +48,21 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { loadPersistedIssues, savePersistedIssues } from "@/lib/client-store"
-import { isWorkItemStatus, type WorkItemStatus } from "@/lib/status"
 import {
-  CURRENT_USER,
+  assigneeShortLabel,
+  getInitials,
+  metaTextClass,
+  withMeLabel,
+} from "@/lib/format"
+import { isIssueStatus, type WorkItemStatus } from "@/lib/status"
+import { CURRENT_USER_ID } from "@/lib/team-data"
+import {
   filterIssues,
   getAssignee,
+  getIssueAssignees,
   getProjectTitle,
   groupIssuesByStatus,
   isIssueOverdue,
-  issueAssignees,
   issueProjects,
   issuesSeed,
   nextIssueId,
@@ -68,7 +75,6 @@ import {
   type SortDir,
 } from "@/lib/issues-data"
 
-const metaClass = "text-[13px] text-muted-foreground"
 const ANY = "__any__"
 
 const tabs: { value: IssueTab; label: string }[] = [
@@ -119,66 +125,6 @@ const emptyFilters: Filters = {
   projectSlug: null,
 }
 
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
-}
-
-function FilterMenu({
-  label,
-  value,
-  options,
-  onChange,
-  allowClear = true,
-}: {
-  label: string
-  value: string | null
-  options: { value: string; label: string }[]
-  onChange: (value: string | null) => void
-  /** When false, the menu has no "Any" reset item and always keeps a value (e.g. Sort). */
-  allowClear?: boolean
-}) {
-  const current = options.find((o) => o.value === value)
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            type="button"
-            variant="outline"
-            className={cn(
-              "h-9 w-full min-w-0 shrink-0 gap-1.5 border-border/80 bg-card px-3 font-normal shadow-none sm:w-auto",
-              allowClear && current && "border-primary/40 text-foreground"
-            )}
-          >
-            <span className="shrink-0 text-muted-foreground">{label}:</span>
-            <span className="truncate">{current ? current.label : "Any"}</span>
-            <ChevronDownIcon className="size-4 opacity-60" strokeWidth={2} />
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="start" className="min-w-[12rem]">
-        <DropdownMenuRadioGroup
-          value={value ?? ANY}
-          onValueChange={(v) => onChange(v === ANY ? null : v)}
-        >
-          {allowClear ? (
-            <DropdownMenuRadioItem value={ANY}>Any {label.toLowerCase()}</DropdownMenuRadioItem>
-          ) : null}
-          {options.map((o) => (
-            <DropdownMenuRadioItem key={o.value} value={o.value}>
-              {o.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
 
 function AssigneeMenu({
   value,
@@ -206,10 +152,10 @@ function AssigneeMenu({
                 <Avatar className="size-5 shrink-0 ring-0" title={current.name}>
                   <AvatarImage src={current.avatarUrl} alt="" />
                   <AvatarFallback className="text-[9px] font-semibold">
-                    {memberInitials(current.name)}
+                    {getInitials(current.name)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate">{current.id === CURRENT_USER.id ? "Me" : current.name}</span>
+                <span className="truncate">{assigneeShortLabel(current.id, current.name)}</span>
               </span>
             ) : (
               <span>Anyone</span>
@@ -224,16 +170,16 @@ function AssigneeMenu({
           onValueChange={(v) => onChange(v === ANY ? null : v)}
         >
           <DropdownMenuRadioItem value={ANY}>Anyone</DropdownMenuRadioItem>
-          {issueAssignees.map((member) => (
+          {getIssueAssignees().map((member) => (
             <DropdownMenuRadioItem key={member.id} value={member.id}>
               <span className="inline-flex items-center gap-2">
                 <Avatar className="size-5 ring-0" title={member.name}>
                   <AvatarImage src={member.avatarUrl} alt="" />
                   <AvatarFallback className="text-[9px] font-semibold">
-                    {memberInitials(member.name)}
+                    {getInitials(member.name)}
                   </AvatarFallback>
                 </Avatar>
-                {member.id === CURRENT_USER.id ? `${member.name} (Me)` : member.name}
+                {withMeLabel(member.id, member.name)}
               </span>
             </DropdownMenuRadioItem>
           ))}
@@ -442,7 +388,7 @@ function IssueRow({
             "hidden w-[4.25rem] items-center justify-end gap-1 text-xs tabular-nums sm:inline-flex",
             overdue
               ? "font-medium text-[var(--status-overdue-foreground)]"
-              : metaClass
+              : metaTextClass
           )}
         >
           <CalendarIcon className="size-3.5 shrink-0" strokeWidth={1.75} />
@@ -454,13 +400,13 @@ function IssueRow({
             <Avatar className="size-6 shrink-0 ring-0" title={assignee.name}>
               <AvatarImage src={assignee.avatarUrl} alt="" />
               <AvatarFallback className="text-[9px] font-semibold">
-                {memberInitials(assignee.name)}
+                {getInitials(assignee.name)}
               </AvatarFallback>
             </Avatar>
           ) : (
             <span className="size-6 shrink-0" aria-hidden />
           )}
-          <span className={cn("hidden w-[6.5rem] truncate sm:inline", metaClass)}>
+          <span className={cn("hidden w-[6.5rem] truncate sm:inline", metaTextClass)}>
             {assignee?.name ?? "Unassigned"}
           </span>
         </div>
@@ -597,12 +543,12 @@ export function IssuesView() {
     const next: Partial<Filters> = {}
 
     const status = searchParams.get("status")
-    if (status && (isWorkItemStatus(status) || status === "overdue")) {
+    if (status && isIssueStatus(status)) {
       next.status = status as IssueStatusFilter
     }
 
     const assignee = searchParams.get("assignee")
-    if (assignee === "me") next.assigneeId = CURRENT_USER.id
+    if (assignee === "me") next.assigneeId = CURRENT_USER_ID
     else if (assignee && getAssignee(assignee)) next.assigneeId = assignee
 
     const project = searchParams.get("project")
@@ -702,7 +648,7 @@ export function IssuesView() {
                 ...i.comments,
                 {
                   id: `c-${id}-${Date.now()}`,
-                  authorId: CURRENT_USER.id,
+                  authorId: CURRENT_USER_ID,
                   body,
                   timeLabel: "Just now",
                 },
@@ -947,9 +893,9 @@ export function IssuesView() {
               <FilterOptionGroup
                 label="Assignee"
                 value={filters.assigneeId}
-                options={issueAssignees.map((member) => ({
+                options={getIssueAssignees().map((member) => ({
                   value: member.id,
-                  label: member.id === CURRENT_USER.id ? "Me" : member.name,
+                  label: assigneeShortLabel(member.id, member.name),
                 }))}
                 anyLabel="Anyone"
                 onChange={(v) => setFilter("assigneeId", v)}
@@ -1024,7 +970,7 @@ export function IssuesView() {
             {activeAssignee ? (
               <FilterChip
                 label={
-                  activeAssignee.id === CURRENT_USER.id
+                  activeAssignee.id === CURRENT_USER_ID
                     ? "Assigned to me"
                     : activeAssignee.name
                 }

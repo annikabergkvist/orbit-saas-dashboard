@@ -19,13 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { getInitials, withMeLabel } from "@/lib/format"
 import { BOARD_COLUMN_LABELS, type WorkItemStatus } from "@/lib/status"
 import {
-  CURRENT_USER,
   getAssignee,
+  getIssueAssignees,
   getProjectTitle,
   isIssueOverdue,
-  issueAssignees,
   type Issue,
   type IssuePriority,
 } from "@/lib/issues-data"
@@ -36,15 +36,6 @@ const priorityValues: { value: IssuePriority; label: string }[] = [
   { value: "medium", label: "Medium" },
   { value: "low", label: "Low" },
 ]
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
-}
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -158,7 +149,7 @@ function PanelBody({
                       <Avatar className="size-5 ring-0" title={assignee.name}>
                         <AvatarImage src={assignee.avatarUrl} alt="" />
                         <AvatarFallback className="text-[9px] font-semibold">
-                          {memberInitials(assignee.name)}
+                          {getInitials(assignee.name)}
                         </AvatarFallback>
                       </Avatar>
                       <span className="truncate">{assignee.name}</span>
@@ -173,16 +164,16 @@ function PanelBody({
                   value={issue.assigneeId}
                   onValueChange={(v) => onUpdate({ assigneeId: v })}
                 >
-                  {issueAssignees.map((member) => (
+                  {getIssueAssignees().map((member) => (
                     <DropdownMenuRadioItem key={member.id} value={member.id}>
                       <span className="inline-flex items-center gap-2">
                         <Avatar className="size-5 ring-0" title={member.name}>
                           <AvatarImage src={member.avatarUrl} alt="" />
                           <AvatarFallback className="text-[9px] font-semibold">
-                            {memberInitials(member.name)}
+                            {getInitials(member.name)}
                           </AvatarFallback>
                         </Avatar>
-                        {member.id === CURRENT_USER.id ? `${member.name} (Me)` : member.name}
+                        {withMeLabel(member.id, member.name)}
                       </span>
                     </DropdownMenuRadioItem>
                   ))}
@@ -245,7 +236,7 @@ function PanelBody({
                   <Avatar className="size-8 shrink-0 ring-0" title={author?.name}>
                     <AvatarImage src={author?.avatarUrl} alt="" />
                     <AvatarFallback className="text-[10px] font-semibold">
-                      {author ? memberInitials(author.name) : "?"}
+                      {author ? getInitials(author.name) : "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 rounded-xl border border-foreground/10 bg-card px-3 py-2">

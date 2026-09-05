@@ -41,6 +41,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { useCurrentUser } from "@/hooks/use-orbit-store"
 import { setAuthSession } from "@/lib/client-store"
+import { firstName, getInitials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 /** Frosted hover for top-bar icon buttons and profile (overrides ghost `hover:bg-muted`). */
@@ -54,24 +55,11 @@ const headerActionClass = cn(
 
 
 
-function userFirstName(fullName: string) {
-  return fullName.split(/\s+/)[0] ?? fullName
-}
-
-function userInitials(fullName: string) {
-  return fullName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-}
-
-function getTimeBasedGreeting(firstName: string): string {
+function getTimeBasedGreeting(name: string): string {
   const hour = new Date().getHours()
-  if (hour >= 5 && hour < 12) return `Good morning, ${firstName}`
-  if (hour >= 12 && hour < 18) return `Good afternoon, ${firstName}`
-  return `Good evening, ${firstName}`
+  if (hour >= 5 && hour < 12) return `Good morning, ${name}`
+  if (hour >= 12 && hour < 18) return `Good afternoon, ${name}`
+  return `Good evening, ${name}`
 }
 
 function DashboardHomeHeader({ firstName }: { firstName: string }) {
@@ -138,7 +126,7 @@ function UserAccountMenu({
               <Avatar size="md" className="bg-muted text-foreground">
                 <AvatarImage src={user.avatarUrl} alt={user.name} />
                 <AvatarFallback className="bg-primary font-semibold text-primary-foreground">
-                  {userInitials(user.name)}
+                  {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
 
@@ -255,7 +243,7 @@ function AppShellHeader({
       )}
     >
       {isHome ? (
-        <DashboardHomeHeader firstName={userFirstName(user.name)} />
+        <DashboardHomeHeader firstName={firstName(user.name)} />
       ) : shellHeaderTitle(pathname) != null ? (
         <h1 className="min-w-0 shrink truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           {shellHeaderTitle(pathname)}

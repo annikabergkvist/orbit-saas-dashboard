@@ -4,19 +4,11 @@ import { ChevronRightIcon } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getInitials } from "@/lib/format"
 import { getDashboardOpenIssuePreviews } from "@/lib/issues-data"
 
 const cardTextLinkClass =
   "mt-2 inline-flex h-auto items-center gap-1 bg-transparent px-0 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-}
 
 /** Team open issues preview — personal work lives in My Tasks below. */
 export function OpenIssuesCard() {
@@ -44,7 +36,7 @@ export function OpenIssuesCard() {
                   >
                     <AvatarImage src={issue.avatarUrl} alt="" />
                     <AvatarFallback className="bg-muted text-xs font-semibold">
-                      {initials(issue.assignee)}
+                      {getInitials(issue.assignee)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">

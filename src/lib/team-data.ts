@@ -1,5 +1,6 @@
 import type { WorkItemStatus } from "@/lib/status"
 import { projectsSeed } from "@/lib/projects-data"
+import { STORAGE_KEYS } from "@/lib/storage-keys"
 
 export type TeamPresence = "online" | "away" | "offline"
 
@@ -288,7 +289,7 @@ export function getTeamMember(id: string): TeamMember | undefined {
 function readProfilePatch(): Partial<Pick<TeamMember, "name" | "role" | "bio" | "avatarUrl">> {
   if (typeof window === "undefined") return {}
   try {
-    const raw = window.localStorage.getItem("orbit:user-profile")
+    const raw = window.localStorage.getItem(STORAGE_KEYS.userProfile)
     if (!raw) return {}
     return JSON.parse(raw) as Partial<Pick<TeamMember, "name" | "role" | "bio" | "avatarUrl">>
   } catch {

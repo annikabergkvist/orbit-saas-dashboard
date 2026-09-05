@@ -9,17 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { getInitials } from "@/lib/format"
 import { setUserProfilePatch, subscribeStore } from "@/lib/client-store"
 import { getCurrentUser } from "@/lib/team-data"
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-}
 
 export function ProfileSection() {
   const rosterUser = React.useMemo(() => getCurrentUser(), [])
@@ -72,7 +64,7 @@ export function ProfileSection() {
           <Avatar className="size-16 ring-0">
             <AvatarImage src={avatarUrl} alt="" />
             <AvatarFallback className="text-base font-semibold">
-              {memberInitials(name)}
+              {getInitials(name)}
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1.5">

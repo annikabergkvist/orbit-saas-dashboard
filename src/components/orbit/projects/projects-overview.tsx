@@ -40,13 +40,14 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { NewProjectDialog } from "@/components/orbit/projects/new-project-dialog"
 import {
-  getCurrentUserWithPatch,
+  getCurrentUser,
   loadPersistedProjects,
   savePersistedProjects,
   subscribeStore,
 } from "@/lib/client-store"
+import { getInitials, metaTextClass } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { isProjectLifecycle } from "@/lib/status"
+import { isProjectLifecycle, PROJECT_LIFECYCLE_LABELS } from "@/lib/status"
 import {
   buildProjectFromValues,
   listProjects,
@@ -62,16 +63,12 @@ import {
 
 const filterTabs: { value: "all" | ProjectLifecycle; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "planning", label: "Planning" },
-  { value: "active", label: "Active" },
-  { value: "in_review", label: "In Review" },
-  { value: "completed", label: "Completed" },
-  { value: "launched", label: "Launched" },
+  ...(Object.entries(PROJECT_LIFECYCLE_LABELS) as [ProjectLifecycle, string][]).map(
+    ([value, label]) => ({ value, label })
+  ),
 ]
 
 const sortOptions = projectSortOptions
-
-const metaClass = "text-[13px] text-[#9aa3b2]"
 
 function typeLabel(type: ProjectType): string {
   switch (type) {
@@ -82,15 +79,6 @@ function typeLabel(type: ProjectType): string {
     case "documentation":
       return "Documentation"
   }
-}
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
 }
 
 function ProjectCard({ project }: { project: ProjectSummary }) {
@@ -107,7 +95,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
           <CardTitle className="text-lg font-semibold leading-snug tracking-tight text-foreground">
             {project.title}
           </CardTitle>
-          <CardDescription className={cn("line-clamp-2 leading-relaxed", metaClass)}>
+          <CardDescription className={cn("line-clamp-2 leading-relaxed", metaTextClass)}>
             {project.description}
           </CardDescription>
         </CardHeader>
@@ -127,21 +115,21 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
                 >
                   <AvatarImage src={member.avatarUrl} alt="" />
                   <AvatarFallback className="text-[10px] font-semibold">
-                    {memberInitials(member.name)}
+                    {getInitials(member.name)}
                   </AvatarFallback>
                 </Avatar>
               ))}
             </div>
           </div>
           <div className="space-y-1.5">
-            <div className={cn("flex items-center justify-between text-xs font-medium", metaClass)}>
+            <div className={cn("flex items-center justify-between text-xs font-medium", metaTextClass)}>
               <span>Progress</span>
               <span className="tabular-nums">{project.progress}%</span>
             </div>
             <Progress
               value={project.progress}
               gradient
-              className="h-1.5 bg-[#e8ebf0]"
+              className="h-1.5 bg-muted"
             />
           </div>
         </CardContent>
@@ -149,7 +137,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
         <CardFooter
           className={cn(
             "gap-3 border-t border-foreground/10 bg-transparent px-4 py-3",
-            metaClass
+            metaTextClass
           )}
         >
           <span className="inline-flex items-center gap-1.5">
@@ -229,7 +217,7 @@ export function ProjectsOverview() {
 
   const createProject = React.useCallback(
     (values: NewProjectValues) => {
-      const owner = getCurrentUserWithPatch()
+      const owner = getCurrentUser()
       const project = buildProjectFromValues(
         values,
         projects,

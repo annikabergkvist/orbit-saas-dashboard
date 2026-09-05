@@ -7,7 +7,7 @@
 - [Next.js 16](https://nextjs.org) (App Router)
 - React 19, TypeScript, Tailwind CSS
 - [shadcn/ui](https://ui.shadcn.com) (Base UI flavor)
-- Recharts, dnd-kit
+- dnd-kit
 
 ## Getting started
 
@@ -22,7 +22,7 @@ Open [http://localhost:3000/login](http://localhost:3000/login) — use any pass
 
 | Route | Description |
 |-------|-------------|
-| `/` | Dashboard — KPIs, activity chart, issues by status, meetings, tasks |
+| `/` | Dashboard — KPIs, timeline, progress rings, meetings, tasks |
 | `/projects` | Project overview with filters |
 | `/projects/[slug]` | Board, list, calendar, files, overview |
 | `/issues` | Issue backlog with filters, bulk actions, detail panel |

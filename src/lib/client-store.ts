@@ -3,6 +3,7 @@
  * In production these keys would be replaced by API-backed user/workspace state.
  */
 
+import { STORAGE_KEYS } from "@/lib/storage-keys"
 import type { BoardTask, ProjectSummary } from "@/lib/projects-data"
 import type { Issue } from "@/lib/issues-data"
 import {
@@ -11,21 +12,10 @@ import {
   type IntegrationId,
   type NotificationPreferenceKey,
 } from "@/lib/settings-data"
-import { CURRENT_USER_ID, teamMembersSeed, type TeamMember } from "@/lib/team-data"
 
+export { getCurrentUser } from "@/lib/team-data"
+export { STORAGE_KEYS }
 export const STORE_EVENT = "orbit:store-updated"
-
-export const STORAGE_KEYS = {
-  auth: "orbit:auth",
-  integrations: "orbit:integrations",
-  notificationPrefs: "orbit:notification-prefs",
-  userProfile: "orbit:user-profile",
-  issues: "orbit:issues",
-  projects: "orbit:projects",
-  boardTasks: "orbit:board-tasks",
-  messages: "orbit:messages",
-  completedIssueIds: "orbit:completed-issue-ids",
-} as const
 
 export type UserProfilePatch = {
   name?: string
@@ -120,15 +110,6 @@ export function setUserProfilePatch(patch: UserProfilePatch) {
   writeJSON(STORAGE_KEYS.userProfile, patch)
 }
 
-export function getCurrentUserWithPatch(): TeamMember {
-  const base = teamMembersSeed.find((m) => m.id === CURRENT_USER_ID)
-  if (!base) {
-    throw new Error(`Current user "${CURRENT_USER_ID}" is missing from teamMembersSeed`)
-  }
-  const patch = getUserProfilePatch()
-  return { ...base, ...patch }
-}
-
 export function getAuthSession(): AuthSession | null {
   return readJSON<AuthSession | null>(STORAGE_KEYS.auth, null)
 }
@@ -175,14 +156,6 @@ export function saveBoardTasks(projectSlug: string, tasks: BoardTask[]) {
   const all = readJSON<Record<string, BoardTask[]>>(STORAGE_KEYS.boardTasks, {})
   all[projectSlug] = tasks
   writeJSON(STORAGE_KEYS.boardTasks, all)
-}
-
-export function getCompletedIssueIds(): Set<string> {
-  return new Set(readJSON<string[]>(STORAGE_KEYS.completedIssueIds, []))
-}
-
-export function setCompletedIssueIds(ids: Set<string>) {
-  writeJSON(STORAGE_KEYS.completedIssueIds, [...ids])
 }
 
 export function loadConversationMessages(

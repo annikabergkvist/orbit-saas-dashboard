@@ -21,11 +21,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { getInitials, withMeLabel } from "@/lib/format"
 import { BOARD_COLUMN_LABELS, type WorkItemStatus } from "@/lib/status"
+import { CURRENT_USER_ID } from "@/lib/team-data"
 import {
-  CURRENT_USER,
   getAssignee,
-  issueAssignees,
+  getIssueAssignees,
   issueProjects,
   type Issue,
   type IssuePriority,
@@ -39,15 +40,6 @@ const priorityValues: { value: IssuePriority; label: string }[] = [
   { value: "medium", label: "Medium" },
   { value: "low", label: "Low" },
 ]
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
-}
 
 /** "YYYY-MM-DD" -> "Mon D" (the seed dueLabel format parseDueLabel understands). */
 function toDueLabel(value: string): string {
@@ -121,7 +113,7 @@ export function NewIssueDialog({
   const [description, setDescription] = React.useState("")
   const [status, setStatus] = React.useState<WorkItemStatus>(initialStatus)
   const [priority, setPriority] = React.useState<IssuePriority>("medium")
-  const [assigneeId, setAssigneeId] = React.useState(CURRENT_USER.id)
+  const [assigneeId, setAssigneeId] = React.useState(CURRENT_USER_ID)
   const [projectSlug, setProjectSlug] = React.useState(issueProjects[0]?.slug ?? "")
   const [dueDate, setDueDate] = React.useState("")
 
@@ -138,7 +130,7 @@ export function NewIssueDialog({
       setAssigneeId(
         initialAssigneeId && getAssignee(initialAssigneeId)
           ? initialAssigneeId
-          : CURRENT_USER.id
+          : CURRENT_USER_ID
       )
       const defaultProject =
         initialProjectSlug &&
@@ -240,7 +232,7 @@ export function NewIssueDialog({
                       <Avatar className="size-5 ring-0" title={assignee.name}>
                         <AvatarImage src={assignee.avatarUrl} alt="" />
                         <AvatarFallback className="text-[9px] font-semibold">
-                          {memberInitials(assignee.name)}
+                          {getInitials(assignee.name)}
                         </AvatarFallback>
                       </Avatar>
                       <span className="truncate">{assignee.name}</span>
@@ -254,16 +246,16 @@ export function NewIssueDialog({
                   value={assigneeId}
                   onValueChange={(v) => setAssigneeId(v)}
                 >
-                  {issueAssignees.map((member) => (
+                  {getIssueAssignees().map((member) => (
                     <DropdownMenuRadioItem key={member.id} value={member.id}>
                       <span className="inline-flex items-center gap-2">
                         <Avatar className="size-5 ring-0" title={member.name}>
                           <AvatarImage src={member.avatarUrl} alt="" />
                           <AvatarFallback className="text-[9px] font-semibold">
-                            {memberInitials(member.name)}
+                            {getInitials(member.name)}
                           </AvatarFallback>
                         </Avatar>
-                        {member.id === CURRENT_USER.id ? `${member.name} (Me)` : member.name}
+                        {withMeLabel(member.id, member.name)}
                       </span>
                     </DropdownMenuRadioItem>
                   ))}

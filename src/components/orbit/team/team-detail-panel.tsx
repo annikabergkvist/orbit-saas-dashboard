@@ -11,6 +11,7 @@ import { PresenceDot } from "@/components/orbit/team/presence-dot"
 import { WorkloadBar } from "@/components/orbit/team/workload-bar"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { getInitials } from "@/lib/format"
 import {
   getProjectTitle,
   presenceLabel,
@@ -21,15 +22,6 @@ function imageSrc(url: string) {
   // next/image rejects local URLs with unconfigured query strings (e.g. cache busters).
   if (url.startsWith("/")) return url.split("?")[0] ?? url
   return url
-}
-
-function memberInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase()
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -57,7 +49,7 @@ function PanelBody({ member }: { member: EnrichedTeamMember }) {
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-3xl font-semibold text-muted-foreground">
-                  {memberInitials(member.name)}
+                  {getInitials(member.name)}
                 </div>
               )}
             </div>

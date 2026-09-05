@@ -656,3 +656,73 @@ html[data-reduce-motion="true"] *::after {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+
+/* Auth boot mark — a small orbiting satellite around a core. */
+.orbit-boot-loader {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.orbit-boot-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in oklch, var(--primary) 28%, transparent);
+}
+
+.orbit-boot-loader-orbit {
+  position: absolute;
+  inset: 0;
+  animation: orbit-boot-spin 1.15s linear infinite;
+}
+
+.orbit-boot-loader-orbit::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 9999px;
+  background-color: var(--primary);
+}
+
+.orbit-boot-loader-core {
+  position: absolute;
+  inset: 32%;
+  border-radius: 9999px;
+  background-color: var(--primary);
+  animation: orbit-boot-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes orbit-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-boot-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-boot-loader-orbit,
+  .orbit-boot-loader-core {
+    animation: none;
+  }
+
+  .orbit-boot-loader-core {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -10,6 +10,7 @@ import {
   seedNotifications,
   type Notification,
 } from "@/lib/notifications"
+import { getInitials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,14 +30,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  return parts
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("")
-}
 
 function formatRelativeTime(iso: string) {
   const deltaMs = Date.now() - new Date(iso).getTime()
@@ -67,7 +60,7 @@ function NotificationRow({
           <AvatarImage src={notification.actor.avatarUrl} alt="" />
         ) : null}
         <AvatarFallback className="bg-muted text-xs font-semibold">
-          {initials(notification.actor.name)}
+          {getInitials(notification.actor.name)}
         </AvatarFallback>
       </Avatar>
 

@@ -33,12 +33,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useCurrentUser } from "@/hooks/use-orbit-store"
 import {
   loadConversationMessages,
   saveConversationMessages,
   type StoredMessage,
 } from "@/lib/client-store"
-import { CURRENT_USER, getProjectTitle } from "@/lib/issues-data"
+import { getProjectTitle } from "@/lib/issues-data"
 import { getTeamMember } from "@/lib/team-data"
 import { cn } from "@/lib/utils"
 
@@ -212,6 +213,7 @@ function ProjectBadge({ projectSlug }: { projectSlug: string }) {
 }
 
 export function MessagesView() {
+  const currentUser = useCurrentUser()
   const searchParams = useSearchParams()
   const memberParam = searchParams.get("member")
   const [activeId, setActiveId] = React.useState(conversations[0].id)
@@ -591,7 +593,7 @@ export function MessagesView() {
                         )}
                       >
                         <Avatar className="mt-0.5 size-9 shrink-0 rounded-md border border-border/80 bg-muted sm:size-10">
-                          <AvatarImage src={CURRENT_USER.avatarUrl} alt="" />
+                          <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
                           <AvatarFallback className="rounded-md text-sm font-medium">You</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1 space-y-0.5">

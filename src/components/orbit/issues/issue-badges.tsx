@@ -2,7 +2,10 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { IssueStatus, WorkItemStatus } from "@/lib/status"
 
+import type { TaskTag } from "@/lib/projects-data"
+
 export type { IssueStatus, MyTaskStatus, WorkItemStatus } from "@/lib/status"
+export type { TaskTag }
 
 type IssuePriority = "low" | "medium" | "high"
 
@@ -38,9 +41,6 @@ const priorityVars: Record<IssuePriority, { color: string; label: string }> = {
   medium: { color: "var(--priority-medium-foreground)", label: "Medium" },
   high: { color: "var(--priority-high-foreground)", label: "High" },
 }
-
-
-export type TaskTag = "research" | "development" | "ux-writing" | "design" | "documentation"
 
 // Reusable badge wrapper for token-based background/foreground.
 function TokenBadge({

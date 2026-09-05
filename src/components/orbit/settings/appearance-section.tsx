@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { STORAGE_KEYS } from "@/lib/storage-keys"
 import { useTheme } from "next-themes"
 
 import {
@@ -12,9 +13,6 @@ import { cn } from "@/lib/utils"
 
 type ThemeChoice = "light" | "dark" | "system"
 
-const COMPACT_KEY = "orbit-density-compact"
-const REDUCE_MOTION_KEY = "orbit-reduce-motion"
-
 const themeOptions: {
   id: ThemeChoice
   label: string
@@ -23,17 +21,17 @@ const themeOptions: {
   {
     id: "light",
     label: "Light",
-    previewClassName: "bg-white border border-border/80",
+    previewClassName: "bg-background border border-border/80",
   },
   {
     id: "dark",
     label: "Dark",
-    previewClassName: "bg-zinc-900 border border-zinc-700",
+    previewClassName: "bg-foreground border border-foreground",
   },
   {
     id: "system",
     label: "System",
-    previewClassName: "border border-border/80 bg-gradient-to-r from-white to-zinc-900",
+    previewClassName: "border border-border/80 bg-muted",
   },
 ]
 
@@ -53,14 +51,11 @@ export function AppearanceSection() {
   // Theme/localStorage values are only known client-side, so this mount flag
   // and the stored-preference reads are required to avoid a hydration
   // mismatch / theme flash.
-  // Theme/localStorage values are only known client-side, so this mount flag
-  // and the stored-preference reads are required to avoid a hydration
-  // mismatch / theme flash.
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
-    setCompactMode(readStoredBoolean(COMPACT_KEY, false))
-    setReduceMotion(readStoredBoolean(REDUCE_MOTION_KEY, false))
+    setCompactMode(readStoredBoolean(STORAGE_KEYS.densityCompact, false))
+    setReduceMotion(readStoredBoolean(STORAGE_KEYS.reduceMotion, false))
   }, [])
 
   React.useEffect(() => {
@@ -70,7 +65,7 @@ export function AppearanceSection() {
     } else {
       document.documentElement.removeAttribute("data-density")
     }
-    window.localStorage.setItem(COMPACT_KEY, String(compactMode))
+    window.localStorage.setItem(STORAGE_KEYS.densityCompact, String(compactMode))
   }, [compactMode, mounted])
 
   React.useEffect(() => {
@@ -80,7 +75,7 @@ export function AppearanceSection() {
     } else {
       document.documentElement.removeAttribute("data-reduce-motion")
     }
-    window.localStorage.setItem(REDUCE_MOTION_KEY, String(reduceMotion))
+    window.localStorage.setItem(STORAGE_KEYS.reduceMotion, String(reduceMotion))
   }, [reduceMotion, mounted])
 
   const activeTheme = (theme ?? "light") as ThemeChoice
